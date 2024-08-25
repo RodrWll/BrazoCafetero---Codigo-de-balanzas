@@ -10,19 +10,19 @@ HX711 scaleChemex;
 // CONSTANTS TO FIRST SCALE - COFFEE - FIRST LOAD CELL 
 const int scaleCoffee_DOUT_PIN = 4;
 const int scaleCoffee_SCK_PIN = 5;
-const double scaleCoffee_FACTOR = -447.76; // Change this value!!!
+const double scaleCoffee_FACTOR = 1; // Change this value!!!
 const int scaleCoffee_OFFSET = 617864; // Change this value!!!
 
 // CONSTANTS TO SECOND SCALE - CHEMEX - SECOND LOAD CELL 
 const int scaleChemex_DOUT_PIN = 8;
 const int scaleChemex_SCK_PIN = 9;
-const double scaleChemex_FACTOR = 420.4; // Change this value!!!
-const int scaleChemex_OFFSET = 4294906620; // Change this value!!!
+const double scaleChemex_FACTOR = 1; // Change this value!!!
+const int scaleChemex_OFFSET = 617864; // Change this value!!!
 
 // OUTPUTS
 const int weight = 9; 
 // FOR WHILE WILL USE CONSTANT QUANTITIES TO TEST
-const int chemex = 10, cafe_molido =20, agua_1 = 50, agua_2 = 100; // Valores de prueba 
+const int chemex = 1, cafe_molido =1, agua_1 = 1, agua_2 = 1; // Valores de prueba 
 /*TOMAR EN CUENTA
 LA ESCALA LA PUSE ALEATORIAY TRABAJE CON LOS VALORES QUE LEIA
 Con esta escala no lee decimales, pero si cuando aumenta 1gr; por eso los valores de prueba son de 1gr*/
@@ -64,18 +64,32 @@ String readSerialInput() {//funcion que lee lo que necesito
     }
     return input;
 }
+int tare(){
+    scaleCoffee.set_offset(scaleCoffee_OFFSET);
+    scaleCoffee.tare(20);
+    scaleChemex.set_offset(scaleChemex_OFFSET);
+    scaleChemex.tare(20);
+    Serial.println("Tare Signal Received...pls wait");
+    return state=state+1;
+    
+}
 
 void loop() {
 
     switch (state) {
+        
+        
         case 1: 
             Serial.println("\nYou are currently in state 1.");
             Serial.println("\nPlease type 'enable' to enable the system:");
             {
                 String input = readSerialInput();
                 if (input == "enable") {
-                    Serial.println("System enabled. Moving to state 2.");
-                    state=2;
+                    Serial.println("System enabled. ");
+                    Serial.println("\nMoving to state 2.");
+                    tare();
+                    
+                    
                 }
             }
             break;
@@ -96,11 +110,8 @@ void loop() {
                     String tare_input = readSerialInput();
                     if (tare_input == "tare") {
                         Serial.println("\nMoving to state 3.");
-                        scaleCoffee.set_offset(scaleCoffee_OFFSET);
-                        scaleCoffee.tare(20);
-                        scaleChemex.set_offset(scaleChemex_OFFSET);
-                        scaleChemex.tare(20);
-                        state=3;
+                        
+                        tare();
                     }
                 }
             }
@@ -108,7 +119,7 @@ void loop() {
 
         case 3:
             Serial.print("State 3: Weighing Coffee\nPeso: ");
-            gramaje = scaleCoffee.get_units(); // ahora la balanza del cafe sera la que mida
+            gramaje = scaleChemex.get_units(); // ahora la balanza del cafe sera la que mida
             Serial.print(gramaje, 1);
             Serial.println(" gr");
             delay(1000);
@@ -120,11 +131,7 @@ void loop() {
                     String tare_input2 = readSerialInput();
                     if (tare_input2 == "tare") {
                         Serial.println("\nMoving to state 4.");
-                        scaleCoffee.set_offset(scaleCoffee_OFFSET);
-                        scaleCoffee.tare(20);
-                        scaleChemex.set_offset(scaleChemex_OFFSET);
-                        scaleChemex.tare(20);
-                        state=4;
+                        tare();
                     }
                 }
             }
@@ -132,7 +139,7 @@ void loop() {
 
         case 4:
             Serial.print("State 4: Weighing Water 1\nPeso: ");
-            gramaje = scaleCoffee.get_units();
+            gramaje = scaleChemex.get_units();
             Serial.print(gramaje, 1);
             Serial.println(" gr");
             delay(1000);
@@ -144,11 +151,8 @@ void loop() {
                     String tare_input3 = readSerialInput();
                     if (tare_input3 == "tare") {
                         Serial.println("\nMoving to state 5.");
-                        scaleCoffee.set_offset(scaleCoffee_OFFSET);
-                        scaleCoffee.tare(20);
-                        scaleChemex.set_offset(scaleChemex_OFFSET);
-                        scaleChemex.tare(20);
-                        state=5;
+                        
+                        tare();
                     }
                 }
             }
@@ -156,27 +160,28 @@ void loop() {
 
         case 5:
             Serial.print("State 5: Weighing Water 2\nPeso: ");
-            gramaje = scaleCoffee.get_units();
+            gramaje = scaleChemex.get_units();
             Serial.print(gramaje, 1);
             Serial.println(" gr");
             delay(1000);
             if (gramaje >= agua_2) {
                 Serial.println("Water 2 reached the desired weight");
                 digitalWrite(weight, HIGH);
+                Serial.println("\nProcess finished. Pls write disable to deactivate");
                 {
-                    String tare_input4 = readSerialInput();
-                    if (tare_input4 == "tare") {
-                        Serial.println("\nProcess finished.");
-                        scaleCoffee.set_offset(scaleCoffee_OFFSET);
-                        scaleCoffee.tare(20);
-                        scaleChemex.set_offset(scaleChemex_OFFSET);
-                        scaleChemex.tare(20);
+                    String enable_input = readSerialInput();
+                    if (enable_input == "disable") {
+                        Serial.println("\nDeactivating... :D ");
+                        Serial.println("\nInactive :c ");
+                        state=6;
                         
                     }
                 }
             }
             break;
-
+        
+        case 6:
+            break;
         default:
             Serial.println("Unknown state.");
             break;
