@@ -2,12 +2,12 @@
 #include <Wire.h> // Required when using I2C devices
 #include "HX711.h" // Required for HX711 load cell amplifier
 
-//CAFE //TA BIEN 
+//CAFE // 
 const int scaleCoffee_DOUT_PIN = 6;
 const int scaleCoffee_SCK_PIN = 7;
 const double scaleCoffee_FACTOR = -447.76; // Change this value!!!
 const int scaleCoffee_OFFSET =  617864; // Change this value!!!
-//CHEMEX//TA BIEN? XDDDDDDDDDDDDDD
+//CHEMEX/
 const int scaleChemex_DOUT_PIN = 4;
 const int scaleChemex_SCK_PIN = 5;
 const double scaleChemex_FACTOR = 420; // Change this value!!!
@@ -34,7 +34,6 @@ void loop(){
     Serial.print("\nPeso chemex : ");
     Serial.print(scaleChemex.get_units(), 1);
     Serial.println(" gr");
-    delay(1500);
     Serial.print("Peso cofee: ");//TA BIEN 
     Serial.print(scaleCoffee.get_units(), 1);
     Serial.println(" gr");
