@@ -10,14 +10,14 @@ HX711 scaleChemex;
 // CONSTANTS TO FIRST SCALE - COFFEE - FIRST LOAD CELL 
 const int scaleCoffee_DOUT_PIN = 4;
 const int scaleCoffee_SCK_PIN = 5;
-const double scaleCoffee_FACTOR = 1; // Change this value!!!
+const double scaleCoffee_FACTOR = -447.76; // Change this value!!!
 const int scaleCoffee_OFFSET = 617864; // Change this value!!!
 
 // CONSTANTS TO SECOND SCALE - CHEMEX - SECOND LOAD CELL 
 const int scaleChemex_DOUT_PIN = 8;
 const int scaleChemex_SCK_PIN = 9;
-const double scaleChemex_FACTOR = 1; // Change this value!!!
-const int scaleChemex_OFFSET = 617864; // Change this value!!!
+const double scaleChemex_FACTOR = 420.4; // Change this value!!!
+const int scaleChemex_OFFSET = 4294906620; // Change this value!!!
 
 // OUTPUTS
 const int weight = 9; 
@@ -46,7 +46,6 @@ void setup() {
     scaleChemex.set_offset(scaleChemex_OFFSET);
     scaleChemex.set_scale(scaleChemex_FACTOR);
     scaleChemex.tare(20);
-
     pinMode(weight, OUTPUT);
 }
 
@@ -71,13 +70,11 @@ int tare(){
     scaleChemex.tare(20);
     Serial.println("Tare Signal Received...pls wait");
     return state=state+1;
-    
 }
 
 void loop() {
-
+    
     switch (state) {
-        
         
         case 1: 
             Serial.println("\nYou are currently in state 1.");
@@ -88,8 +85,6 @@ void loop() {
                     Serial.println("System enabled. ");
                     Serial.println("\nMoving to state 2.");
                     tare();
-                    
-                    
                 }
             }
             break;
@@ -104,13 +99,11 @@ void loop() {
             if (gramaje >= chemex) {
                 Serial.println("Chemex reached the desired weight");
                 digitalWrite(weight, HIGH);
-
                 Serial.println("\nPlease type 'tare' to jump to the next state.");
                 {
                     String tare_input = readSerialInput();
                     if (tare_input == "tare") {
                         Serial.println("\nMoving to state 3.");
-                        
                         tare();
                     }
                 }
@@ -151,7 +144,6 @@ void loop() {
                     String tare_input3 = readSerialInput();
                     if (tare_input3 == "tare") {
                         Serial.println("\nMoving to state 5.");
-                        
                         tare();
                     }
                 }
@@ -174,7 +166,6 @@ void loop() {
                         Serial.println("\nDeactivating... :D ");
                         Serial.println("\nInactive :c ");
                         state=6;
-                        
                     }
                 }
             }
