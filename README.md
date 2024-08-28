@@ -52,15 +52,15 @@ stateDiagram
 
 Wiring for the Arduino Nano is as follows:
 
-| Pin | Arduino Nano Function       | Description          |Pin Xarm Connection |
-|-----|----------------|----------------------|---|--------------|
-| D4  | scaleChemex_DOUT_PIN |signal pin for load cell 1|   ||
-| D5  | scaleChemex_SCK_PIN  | clock signal for load cell 2| |       |
-| D8  | scaleCoffee_DOUT_PIN |signal pin for load cell 2|         |          |
-| D9  | scaleCoffee_SCK_PIN | clock signal for load cell 2 ||       |
-| D8  | weigth_DIN_PIN  | weigth pin for Xarm input  |DI1|
-| D8  | enable_DOUT_PIN  | enable pin for Xarm output  | DO4|
-| D8  | tare_DOUT_PIN  | tare pin for Xarm output |DO5|
-| GND | Ground | Common ground connection for Xarm and the arduino |GND |
+| Pin | Arduino Nano Function | Description          |Pin Xarm Connection |
+|-----|-----------------------|----------------------|--------------------|
+| D4  | scaleChemex_DOUT_PIN | signal pin 1          |                    |
+| D5  | scaleChemex_SCK_PIN  | clock signal 1        |                    |       
+| D8  | scaleCoffee_DOUT_PIN | signal pin 2          |                    |
+| D9  | scaleCoffee_SCK_PIN  | clock signal 2        |                    |
+| D8  | weigth_DIN_PIN       | weigth Xarm input     | DI1                |
+| D8  | enable_DOUT_PIN      | enable Xarm output    | DO4                |
+| D8  | tare_DOUT_PIN        | tare Xarm output      | DO5                |
+| GND | Ground               | Common ground         |     GND            |
 
 
