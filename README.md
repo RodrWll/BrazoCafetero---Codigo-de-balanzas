@@ -59,8 +59,8 @@ Wiring for the Arduino Nano is as follows:
 | D8  | scaleCoffee_DOUT_PIN | signal pin 2          |                    |
 | D9  | scaleCoffee_SCK_PIN  | clock signal 2        |                    |
 | D8  | weigth_DIN_PIN       | weigth Xarm input     | DI1                |
-| D8  | enable_DOUT_PIN      | enable Xarm output    | DO5                |
-| D8  | tare_DOUT_PIN        | tare Xarm output      | DO4                |
+| D8  | enable_DOUT_PIN      | enable Xarm output    | DO4                |
+| D8  | tare_DOUT_PIN        | tare Xarm output      | DO5              |
 | GND | Ground               | Common ground         |     GND            |
 
 
