@@ -8,6 +8,9 @@ Variables
 DIN1_BAL = 9      # DI1
 DOUT4_ENABLE = 12  # DO4
 DOUT5_TARE = 13   # DO5
+# estados (invertidos)
+HIGH = 0
+LOW = 1
 
 ## xARM
 ARM_ACCEL = 200
@@ -34,6 +37,11 @@ def get_digio_value(arm, pin=None):
     if pin is None:
         return all_gpio
     return all_gpio[pin]
+
+def control_gripper(arm, comm):
+    # 0 = cerrar / 1 = abrir
+    arm.set_tgpio_digital(ionum=0, value=comm, delay_sec=0)
+    return print(f'Gripper = {comm}')
 
 ## TÉCNICA
 

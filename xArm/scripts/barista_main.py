@@ -21,11 +21,16 @@ def tarar(value):
     arm.set_cgpio_digital(DOUT5_TARE, value)
     time.sleep(0.5)
     print(f"TARE listo: {value}")
-def print_msg(msg, st=estado):
+def print_msg(msg):
     estados = ['ST_ON', 'ST_TARE', 'ST_CHMX', 'ST_CAFE', 'ST_AFLORAM', 'ST_BLOOM', 'ST_OFF']
-    print(f"{estados[st]}: {msg}")
+    print(f"{estados[estado]}: {msg}")
+
 
 ## START
+control_gripper(arm, 1)
+control_gripper(arm, 0)
+get_digio_value(arm)
+
 estado = ST_ON
 arm.set_cgpio_digital(DOUT4_ENABLE, 1)
 print("> Estado: ST_ON")
@@ -37,7 +42,7 @@ time.sleep(1)
 tarar(0)
 # colocar Chemex y esperar a que llegue a peso
 print("Esperando GRAMAJE. ", end="")
-if get_digio_value(arm, DIN1_BAL) == 0:
+if get_digio_value(arm, DIN1_BAL) == LOW:
     time.sleep(0.5)
     print(". ", end="")
 print("Chemex pesado!")
@@ -49,7 +54,7 @@ time.sleep(1)
 tarar(0)
 # colocar café y esperar a que llegue a peso
 print("Esperando GRAMAJE. ", end="")
-if get_digio_value(arm, DIN1_BAL) == 0:
+if get_digio_value(arm, DIN1_BAL) == LOW:
     time.sleep(0.5)
     print(". ", end="")
 print("Cafe pesado!")
@@ -62,12 +67,13 @@ tarar(0)
 # verter agua y esperar a que llegue a peso:
 # mover a hervidor + abrir gripper
 print_msg("a hervidor...")
-arm.set_servo_angle(angle=[64.9, 9.0, -17.4, 154.6, 82.4, -86.4], speed=ARM_SPEED, mvacc=ARM_ACCEL, wait=True, radius=0.0)
+arm.set_servo_angle(angle=[-45.0, -16.9, -13.1, 0.0, 30.0, -45.0], speed=ARM_SPEED, mvacc=ARM_ACCEL, wait=True, radius=0.0)
+arm.set_servo_angle(angle=[-61.4, 22.6, -56.0, -65.6, 105.3, 59.9], speed=ARM_SPEED, mvacc=ARM_ACCEL, wait=True, radius=0.0)
 # agarrar hervidor (cerrar gripper)
 
 # mover a Chemex (centro)
 print_msg("a chemex...")
-joint_motion_cont(arm, [-15.0, 17.3, -47.6, 77.0, 97.5, -60.5])
+joint_motion_cont(arm, [-20.6, 6.3, -38.5, 72.4, 100.8, -59.5])
 
 # movimiento circular - verter agua
 print("TARAR - DO5 = 1")
