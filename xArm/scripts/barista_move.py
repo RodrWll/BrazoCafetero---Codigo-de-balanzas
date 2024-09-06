@@ -6,8 +6,8 @@ Variables
 ## BALANZA 
 # pinout
 DIN1_BAL = 9      # DI1
-DOUT4_ENABLE = 12  # DO4
-DOUT5_TARE = 13   # DO5
+DOUT4_ENABLE = 13  # DO4
+DOUT5_TARE = 12   # DO5
 # estados (invertidos)
 HIGH = 0
 LOW = 1
