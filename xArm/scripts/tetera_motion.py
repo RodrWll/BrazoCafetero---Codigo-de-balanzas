@@ -17,14 +17,37 @@ arm.set_state(state=0)
 arm.reset(wait=False)
 arm.move_gohome()
 
-## START
-arm.set_servo_angle(angle=[-90.0, 0.3, 1.1, 0.0, -1.4, 0.0], speed=ARM_SPEED, mvacc=ARM_ACCEL, wait=False, radius=0.0)
-arm.set_servo_angle(angle=[-90.0, -36.8, -9.6, 0.0, 46.4, 0.0], speed=ARM_SPEED, mvacc=ARM_ACCEL, wait=False, radius=0.0)
-arm.set_servo_angle(angle=[-49.5, 4.2, -20.0, -50.6, 100.2, 77.9], speed=ARM_SPEED, mvacc=ARM_ACCEL, wait=True, radius=0.0)
+def wait_for_enter():
+    while True:
+        input("Press Enter to continue...")
+        break
+
+ARM_SPEED = 12
+## TETERA
+# wait_for_enter()
+# 1) orientar a tetera
+# 1a) elevar y rotar 45°
+arm.set_servo_angle(angle=[-40.0, -48.9, -5.3, 0.0, 54.2, 0.0], speed=ARM_SPEED, mvacc=ARM_ACCEL, wait=False, radius=0.0)
+# 1b) rotar otros 45°
+arm.set_servo_angle(angle=[-90.0, -54.9, -2.8, 0.0, 57.7, 0.0], speed=ARM_SPEED, mvacc=ARM_ACCEL, wait=False, radius=0.0)
+# 1c) orientar gripper
+arm.set_servo_angle(angle=[-47.0, -18.0, -18.8, -53.3, 114.2, 61.2], speed=ARM_SPEED, mvacc=ARM_ACCEL, wait=False, radius=0.0)
+# 1c) descender
+arm.set_servo_angle(angle=[-51.2, 13.6, -22.9, -51.6, 95.8, 82.7], speed=ARM_SPEED, mvacc=ARM_ACCEL, wait=False, radius=0.0)
+
+# 2) acercar a tetera + abrir gripper
+# wait_for_enter()
 control_gripper(arm, 1)
+arm.set_servo_angle(angle=[-56.9, 17.6, -30.2, -57.6, 96.9, 79.4], speed=ARM_SPEED, mvacc=ARM_ACCEL, wait=True, radius=0.0)
 time.sleep(1)
-arm.set_servo_angle(angle=[-55.7, 9.3, -27.4, -57.0, 100.0, 74.9], speed=ARM_SPEED, mvacc=ARM_ACCEL, wait=True, radius=0.0)
-time.sleep(1)
+# 3) cerrar gripper + levantar tetera
+# wait_for_enter()
 control_gripper(arm, 0)
 time.sleep(1)
-arm.set_servo_angle(angle=[-52.4, -17.7, -26.1, -60.9, 114.9, 52.8], speed=ARM_SPEED, mvacc=ARM_ACCEL, wait=True, radius=0.0)
+arm.set_servo_angle(angle=[-52.2, -27.5, -31.1, -63.5, 118.4, 39.9], speed=ARM_SPEED, mvacc=ARM_ACCEL, wait=True, radius=0.0)
+
+## CHEMEX
+# 1) orientar a Chemex
+arm.set_servo_angle(angle=[-3.0, 10.3, -74.6, -5.8, 149.2, 84.8], speed=ARM_SPEED, mvacc=ARM_ACCEL, wait=True, radius=0.0)
+# 2) inclinar tetera
+arm.set_servo_angle(angle=[-2.1, 18.8, -78.4, -10.6, 169.4, 80.3], speed=ARM_SPEED, mvacc=ARM_ACCEL, wait=True, radius=0.0)
