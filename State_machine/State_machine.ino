@@ -1,53 +1,80 @@
+
 #include <Arduino.h> // Required for platformio, not needed for Arduino IDE
 #include <Wire.h> // Required when using I2C devices
 #include "HX711.h" // Required for HX711 load cell amplifier
-
+#include <LiquidCrystal_I2C.h>
+//pin para dispensador
+int dispensador_en = 10;  
+//  lcd
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+//potenciometro para cambiar valores de cafe_molido
+int potPin = A1;  // Pin del potenciómetro
+int potValue = 0; // Valor leído del potenciómetro
+int mappedValue = 0; // Valor mapeado entre 10 y 100
+int lastPotValue = 0;
+//boton para cambiar de pantalla en el lcd
+const int buttonPin2 = 11;  // Pin al que está conectado el botón
+int buttonState = 0;      // Estado actual del botón
+int lastButtonState = 0;  // Último estado del botón
+int toggleState = 0;      // Estado para alternar entre mensajes
 // HX711 circuit wiring
 HX711 loadCell;
 HX711 scaleCoffee;
 HX711 scaleChemex;
-
-// CONSTANTS TO FIRST SCALE - COFFEE 
+// CONSTANTS TO FIRST SCALE - CHEMEX 
 const int scaleCoffee_DOUT_PIN = 4;
 const int scaleCoffee_SCK_PIN = 5;
 const double scaleCoffee_FACTOR = -447.76; // Change this value!!!
 const int scaleCoffee_OFFSET = 617864; // Change this value!!!
-
-// CONSTANTS TO SECOND SCALE - CHEMEX 
+// CONSTANTS TO SECOND SCALE - COFFE 
 const int scaleChemex_DOUT_PIN = 8;
 const int scaleChemex_SCK_PIN = 9;
 const double scaleChemex_FACTOR = 420.4; // Change this value!!!
 const int scaleChemex_OFFSET = 4294906620; // Change this value!!!
 // INPUTS PIN
-const int tare = 3; 
-const int enable = 7; 
+const int tare_DOUT_PIN = 3; 
+const int enable_DOUT_PIN = 7; 
 // OUTPUTS PIN 
-const int weight = 6; 
-// FOR WHILE WILL USE CONSTANT QUANTITIES TO TEST
-const int chemex = 20, cafe_molido =100, agua_1 = 200, agua_2 = 50; // Valores de prueba 
+const int weigth_DIN_PIN = 12; 
 // Internal variables
+int chemex = 400/*400 pesa el chemex*/, cafe_molido =20, agua_1 = 20, agua_2 = 20; // Valores de prueba 
 int state = 1;
-int gramaje = 0;
-
+float gramaje = 0;
+//boton para resetear estados
+const int buttonPin = 2; // Pin del botón
+int buttonState2=0;
+int lastButtonState2=0;
+//
+int mensaje=0;
+int mostrar;
 void setup() {
+    delay(500);
     Serial.begin(9600);
     Serial.println("Starting...");
     Serial.println("------------------------");
-    
-    // Initialize scales
+    //boton 2
+    pinMode(buttonPin2,INPUT_PULLUP);
+    // Configuración del botón con interrupción
+    pinMode(buttonPin, INPUT_PULLUP);
+    // Inicializar balanzas
     scaleCoffee.begin(scaleCoffee_DOUT_PIN, scaleCoffee_SCK_PIN);
     scaleCoffee.set_offset(scaleCoffee_OFFSET);
     scaleCoffee.set_scale(scaleCoffee_FACTOR);
     scaleCoffee.tare(20);
-
     scaleChemex.begin(scaleChemex_DOUT_PIN, scaleChemex_SCK_PIN);
     scaleChemex.set_offset(scaleChemex_OFFSET);
     scaleChemex.set_scale(scaleChemex_FACTOR);
     scaleChemex.tare(20);
-
-    pinMode(weight, OUTPUT);
-    pinMode(tare, INPUT_PULLUP);
-    pinMode(enable, INPUT_PULLUP);
+    //señales
+    pinMode(weigth_DIN_PIN, OUTPUT);
+    pinMode(dispensador_en,OUTPUT)
+    pinMode(tare_DOUT_PIN, INPUT_PULLUP);
+    pinMode(enable_DOUT_PIN, INPUT_PULLUP);
+    pinMode(buttonPin, INPUT_PULLUP);  // Configura el botón como entrada
+    //inicializar lcd
+    lcd.init();                 // Inicializa el LCD
+    lcd.backlight();            // Enciende la retroiluminación del LCD
+    lcd.setCursor(0, 0);
 }
 int tare_function(){
     scaleCoffee.set_offset(scaleCoffee_OFFSET);
@@ -56,164 +83,219 @@ int tare_function(){
     scaleChemex.tare(20);
     Serial.println("Tare Signal Received...pls wait");
     return state=state+1;
-    
+}
+void mensaje2(){//del cafe
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("COFFEE ");
+  lcd.print(" Gr:");
+  lcd.print(gramaje);
+  lcd.setCursor(0, 1);//comlumnas/filas
+  lcd.print("St:");
+  lcd.print(state);
+  lcd.print("|En: ");
+  lcd.print(digitalRead(enable_DOUT_PIN));
+  lcd.print("|Ta: ");
+  lcd.print(digitalRead(tare_DOUT_PIN));
+}
+void mensaje1(){//del chemex
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("CHEMEX ");
+  lcd.print(" Gr:");
+  lcd.print(gramaje);
+  lcd.setCursor(0, 1);//comlumnas/filas
+  lcd.print("St:");
+  lcd.print(state);
+  lcd.print("|En: ");
+  lcd.print(digitalRead(enable_DOUT_PIN));
+  lcd.print("|Ta: ");
+  lcd.print(digitalRead(tare_DOUT_PIN));
+  
 }
 
 void loop() {
-
-    switch (state) {
-       
+  //boton para resetear
+  buttonState2=digitalRead(buttonPin);
+  if (buttonState2 != lastButtonState2) {
+      if (buttonState2 == LOW) {  // Si el botón fue presionado
+        lcd.clear();
+        lcd.setCursor(0, 0);
+        lcd.print("-----RESET------ "); 
+        state=1;//reseteo el estado y regreso ala estado anterior
+        delay(900);
+      }
+      delay(50);
+    }
+  lastButtonState2 = buttonState2;
+  //POTENCIOMETRO
+  potValue = analogRead(potPin);
+  mappedValue = map(potValue, 0, 1023, 0, 50);
+  if(abs(lastPotValue - mappedValue)>2){
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Valor cafe: ");
+    mostrar = cafe_molido +  mappedValue;
+    lcd.print(mostrar);
+    lcd.setCursor(0, 1);
+    delay(100);
+  }
+  lastPotValue=mappedValue;
+  // boton 2, para cambiar de pantalla 
+    buttonState = digitalRead(buttonPin2);
+    if (buttonState != lastButtonState) {
+      if (buttonState == LOW) {  // Si el botón fue presionado
+        toggleState = !toggleState;  // Cambia el estado de la variable toggleState//empieza en 0
+        if (toggleState) {
+          mensaje=2;  // Muestra el segundo mensaje
+        } else {
+          mensaje=1;  // Vuelve a mostrar el primer mensaje
+        }
+      }
+      delay(50);
+    }
+    lastButtonState = buttonState;
+    //estados
+     switch (state) {
        case 1: 
-            digitalWrite(weight, LOW);
-            Serial.println("\nYou are currently in state 1.");
-            Serial.println("\nWaiting for the signal tare to jump to the next state.");
-            delay(1000);
-            Serial.println("Enable: ");
-            Serial.print(digitalRead(enable));
-            Serial.println("  |  ");
-            Serial.print("Tare: ");
-            Serial.print(digitalRead(tare));
-            delay(1000);
+            digitalWrite(weigth_DIN_PIN, LOW);
+            mensaje1();
+            if(mensaje==1){
+              mensaje1();
+            }
+            else if(mensaje==2){
+              mensaje2();
+            }
             {
-              int digital_enable = digitalRead(enable);
+              int digital_enable = digitalRead(enable_DOUT_PIN);
                // String input = readSerialInput();
-                if (digital_enable== 1) {
-                    Serial.println("Enable: ");
-                    Serial.print(digitalRead(enable));
-                    Serial.println("  |  ");
-                    Serial.print("Tare: ");
-                    Serial.print(digitalRead(tare));
-                    Serial.println("System enabled. ");
-                    Serial.println("\nMoving to state 2.");
-                    tare_function();
+                if (digital_enable== 1) {//ESPERARA AL BRAZO PARA EMPEZAR A MEDIR JUNTO AL DISPENSADOR
                     
-                    
+                    tare_function(); 
                 }
             }
             break;
-
         case 2: 
-            digitalWrite(weight, LOW);
+            digitalWrite(weigth_DIN_PIN, LOW);
             Serial.print("State 2: Weighing Chemex\nPeso: ");
             gramaje = scaleCoffee.get_units(); // la balanza del chemex solo medira
             Serial.print(gramaje, 1);
             Serial.println(" gr");
-            delay(1000);
+            delay(200);
+            mensaje2();
+            if(mensaje==1){
+              mensaje1();
+            }
+            else if(mensaje==2){
+              mensaje2();
+            }
+            
             if (gramaje >= chemex) {
                 Serial.println("Chemex reached the desired weight");
-                digitalWrite(weight, HIGH);
-
-                Serial.println("\nWaiting for the signal tare to jump to the next state.");
+                digitalWrite(weigth_DIN_PIN, HIGH);
                 {
-                  int tare_digital = digitalRead(tare);
+                  int tare_digital = digitalRead(tare_DOUT_PIN);
                     //String tare_input = readSerialInput();
                     if (tare_digital== 1) {
-                        Serial.println("\nMoving to state 3.");
-                        Serial.println("Enable: ");
-                        Serial.print(digitalRead(enable));
-                        Serial.println("  |  ");
-                        Serial.print("Tare: ");
-                        Serial.print(digitalRead(tare));
-                        tare_function();
+                       tare_function();
                     }
                 }
             }
             break;
-
         case 3:
-           digitalWrite(weight, LOW);
+            digitalWrite(dispensador_en, HIGH);
+            digitalWrite(weigth_DIN_PIN, LOW);
             Serial.print("State 3: Weighing Coffee\nPeso: ");
             gramaje = scaleChemex.get_units(); // ahora la balanza del cafe sera la que mida
             Serial.print(gramaje, 1);
             Serial.println(" gr");
-            delay(1000);
-            if (gramaje >= cafe_molido) {
+            delay(200);
+            mensaje2();
+            if(mensaje==1){
+              mensaje1();
+            }
+            else if(mensaje==2){
+              mensaje2();
+            }
+            //mostrar= cafe molido + mapped value 
+            if (gramaje >= mostrar) {
                 Serial.println("Coffee reached the desired weight");
-                digitalWrite(weight, HIGH);
+                digitalWrite(weigth_DIN_PIN, HIGH);
                 Serial.println("\nWaiting for the signal tare to jump to the next state.");
                 {
-                     int tare_digital = digitalRead(tare);
+                     int tare_digital = digitalRead(tare_DOUT_PIN);
                     //String tare_input = readSerialInput();
-                    if (tare_digital== 0) {
-                        Serial.println("\nMoving to state 4.");
-                        Serial.println("Enable: ");
-                        Serial.print(digitalRead(enable));
-                        Serial.println("  |  ");
-                        Serial.print("Tare: ");
-                        Serial.print(digitalRead(tare));
+                    if (tare_digital== 1) {
                         tare_function();
                     }
                 }
             }
             break;
-
         case 4:
-            digitalWrite(weight, LOW);
+            digitalWrite(weigth_DIN_PIN, LOW);
             Serial.print("State 4: Weighing Water 1\nPeso: ");
             gramaje = scaleChemex.get_units();
             Serial.print(gramaje, 1);
             Serial.println(" gr");
-            delay(1000);
+            delay(200);
+            mensaje2();
+           if(mensaje==1){
+              mensaje1();
+            }
+            else if(mensaje==2){
+              mensaje2();
+            }
+            
             if (gramaje >= agua_1) {
                 Serial.println("Water 1 reached the desired weight");
-                digitalWrite(weight, HIGH);
+                digitalWrite(weigth_DIN_PIN, HIGH);
                 Serial.println("\nWaiting for the signal tare to jump to the next state.");
                 {
-                     int tare_digital = digitalRead(tare);
+                     int tare_digital = digitalRead(tare_DOUT_PIN);
                     //String tare_input = readSerialInput();
                     if (tare_digital== 1) {
-                        Serial.println("\nMoving to state 5.");
-                        Serial.println("Enable: ");
-                        Serial.print(digitalRead(enable));
-                        Serial.println("  |  ");
-                        Serial.print("Tare: ");
-                        Serial.print(digitalRead(tare));
                         tare_function();
-                    }
+                        
                 }
             }
             break;
-
         case 5:
-            digitalWrite(weight, LOW);
+            digitalWrite(weigth_DIN_PIN, LOW);
             Serial.print("State 5: Weighing Water 2\nPeso: ");
             gramaje = scaleChemex.get_units();
             Serial.print(gramaje, 1);
             Serial.println(" gr");
-            delay(1000);
+            delay(200);
+             mensaje2();
+            if(mensaje==1){
+              mensaje1();
+            }
+            else if(mensaje==2){
+              mensaje2();
+            }
+            
             if (gramaje >= agua_2) {
                 Serial.println("Water 2 reached the desired weight");
-                digitalWrite(weight, HIGH);
+                digitalWrite(weigth_DIN_PIN, HIGH);
                 Serial.println("\nProcess finished. Pls write disable to deactivate");
                 {
-                     int tare_digital = digitalRead(tare);
+                     int tare_digital = digitalRead(tare_DOUT_PIN);
                     //String tare_input = readSerialInput();
-                    if (tare_digital== 1) {
-                        Serial.println("\nProcces finished. Waiting to die :c");
-                        Serial.println("Enable: ");
-                        Serial.print(digitalRead(enable));
-                        Serial.println("  |  ");
-                        Serial.print("Tare: ");
-                        Serial.print(digitalRead(tare));
-                        if (digitalRead(enable) == 0) {
-                        Serial.print("Enable: ");
-                        Serial.print(digitalRead(enable));
-                        Serial.println("  |  ");
-                        Serial.print("Tare: ");
-                        Serial.print(digitalRead(tare));
-                        Serial.println("\nBye:c...");
-                        state=6;
-                        
+                    if (tare_digital== 1) {\
+                        if (digitalRead(enable_DOUT_PIN) == 0) {\
+                        lcd.print("END");
+                        state=6;\
                     }
                     }
                 }
             }
             break;
-        
         case 6:
             break;
         default:
             Serial.println("Unknown state.");
             break;
     }
+     }
+     
 }
