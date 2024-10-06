@@ -48,7 +48,7 @@ stateDiagram
 
 
 
-## Pinout for Arduino Nano
+## Pinout for Arduino Nano - Finite-state machine
 
 Wiring for the Arduino Nano is as follows:
 
