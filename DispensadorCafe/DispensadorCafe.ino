@@ -14,6 +14,9 @@ int AIN1 = 10; int AIN2 = 11;
 // Potentiometer to control the speed of the motor
 int potentiometer = A2;
 
+//Control de apertura del mecanismo
+int potenMecha = A4;
+
 void setup() {
     servo1.attach(pinServo1);
     pinMode(PWMA, OUTPUT);
@@ -29,26 +32,37 @@ void setup() {
 }
 
 void loop() {
-    if(digitalRead(interruptPin) == HIGH){
+    //if(digitalRead(interruptPin) == HIGH){
         Serial.println("Activating system");
         //First open mechanism
-        servo1.write(60);
-        delay(2000);
+        /*servo1.write(60);
+        delay(2000);*/
         //Then shake the coffee
-        while (digitalRead(interruptPin) == HIGH){
+
+        //while (digitalRead(interruptPin) == HIGH){
             int speed = analogRead(potentiometer);
+            int angle = analogRead(potenMecha);
             // map the potentiometer value to a value between 0 and 255
             speed = map(speed, 0, 1023, 0, 255);
+            // map the angle of the mechanisim
+            angle = map(angle,0,1023,0,75);
             // Print the speed to the serial port
             Serial.print("Speed: ");
             Serial.println(speed);
+            // Print the angle to the serial port
+            Serial.print("Angle: ");
+            Serial.println(angle);
+            // Space to serial port
+            Serial.println("------------------------");
             // Move the motor and change the speed
             digitalWrite(AIN1, LOW);
             digitalWrite(AIN2, HIGH);
             analogWrite(PWMA, speed);
-        }
+            servo1.write(angle);
+            delay(500);
+        /*}
         //Close mechanism
         servo1.write(0);
         delay(2000);
-    }
+    }*/
 }
