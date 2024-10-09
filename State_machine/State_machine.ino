@@ -3,6 +3,7 @@
 #include <Wire.h> // Required when using I2C devices
 #include "HX711.h" // Required for HX711 load cell amplifier
 #include <LiquidCrystal_I2C.h>
+#include "Servo.h"
 //pin para dispensador
 int dispensador_en = 10;  
 //  lcd
@@ -44,7 +45,16 @@ float gramaje = 0;
 const int buttonPin = 2; // Pin del botón
 int buttonState2=0;
 int lastButtonState2=0;
-//
+/****** MECANISMO DE DISPENSACIÓN ********/
+Servo servoMecha;
+// Pines para control de dispensación
+const int pinServo = 10;
+const int angMax = 75;
+// const int pinMotor = ;
+
+int grUmbral;
+int ang;
+
 int mensaje=0;
 int mostrar;
 void setup() {
@@ -75,6 +85,8 @@ void setup() {
     lcd.init();                 // Inicializa el LCD
     lcd.backlight();            // Enciende la retroiluminación del LCD
     lcd.setCursor(0, 0);
+    // Servo del mecanismo
+    servoMecha.attach(pinServo);
 }
 int tare_function(){
     scaleCoffee.set_offset(scaleCoffee_OFFSET);
@@ -217,6 +229,18 @@ void loop() {
             else if(mensaje==2){
               mensaje2();
             }
+            grUmbral = mostrar - 10;
+            if(gramaje < grUmbral){
+              servoMecha.write(angMax);
+            }
+            else if(gramaje >= grUmbral){
+              ang = angMax - 7.5(gramaje - grUmbral);
+              servoMecha.write(ang);
+            }
+            else if(gramaje >= mostrar){
+              servoMecha.write(0 )
+            }
+
             //mostrar= cafe molido + mapped value 
             if (gramaje >= mostrar) {
                 Serial.println("Coffee reached the desired weight");
