@@ -77,7 +77,7 @@ void setup() {
     scaleChemex.tare(20);
     //señales
     pinMode(weigth_DIN_PIN, OUTPUT);
-    pinMode(dispensador_en,OUTPUT)
+    pinMode(dispensador_en,OUTPUT);
     pinMode(tare_DOUT_PIN, INPUT_PULLUP);
     pinMode(enable_DOUT_PIN, INPUT_PULLUP);
     pinMode(buttonPin, INPUT_PULLUP);  // Configura el botón como entrada
@@ -234,11 +234,11 @@ void loop() {
               servoMecha.write(angMax);
             }
             else if(gramaje >= grUmbral){
-              ang = angMax - 7.5(gramaje - grUmbral);
+              ang = angMax - 7.5*(gramaje - grUmbral);
               servoMecha.write(ang);
             }
             else if(gramaje >= mostrar){
-              servoMecha.write(0 )
+              servoMecha.write(0 );
             }
 
             //mostrar= cafe molido + mapped value 
