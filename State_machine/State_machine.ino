@@ -11,7 +11,7 @@ int buttonState = 0;       // Estado actual del botón
 int lastButtonState = 0;   // Último estado del botón
 int toggleState = 0;       // Estado para alternar entre mensajes
 int mensaje = 0;
-int mostrar;
+int caffe_total;
 
 // Potenciómetro
 int potPin = A1;     // Pin del potenciómetro
@@ -130,6 +130,7 @@ void chemexMessage()
     lcd.print("|Ta: ");
     lcd.print(digitalRead(tare_DOUT_PIN));
 }
+bool flagServo = false;
 void loop()
 {
     // boton para resetear
@@ -175,8 +176,8 @@ void loop()
         lcd.clear();
         lcd.setCursor(0, 0);
         lcd.print("Valor cafe: ");
-        mostrar = cafe_molido + mappedValue;
-        lcd.print(mostrar);
+        caffe_total = cafe_molido + mappedValue;
+        lcd.print(caffe_total);
         lcd.setCursor(0, 1);
         delay(100);
     }
@@ -249,21 +250,23 @@ void loop()
         {
             coffeeMessage();
         }
-        grUmbral = mostrar - 10;
-        if (gramaje < grUmbral)
+        grUmbral = caffe_total - 10;
+        if (gramaje < grUmbral && !flagServo)
         {
-            servoMecha.write(angMax);
+            servoMecha.write(angMax); // In this case only the servo will be activated once
+            flagServo = true;
         }
         else if (gramaje >= grUmbral)
         {
             ang = angMax - 7.5 * (gramaje - grUmbral);
             servoMecha.write(ang);
+            flagServo = false; // Resetear la bandera
         }
-        else if (gramaje >= mostrar)
+        if (gramaje >= caffe_total)
         {
             servoMecha.write(0);
         }
-        if (gramaje >= mostrar)
+        if (gramaje >= caffe_total)
         {
             Serial.println("Coffee reached the desired weight");
             digitalWrite(weigth_DIN_PIN, HIGH);
