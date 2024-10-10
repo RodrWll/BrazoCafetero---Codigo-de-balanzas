@@ -55,6 +55,7 @@ const int pinServo = 10;
 const int angMax = 75;
 int grUmbral;
 int ang;
+const int dispensador_en = 6; // Preliminar para activar el dispensador
 
 void setup()
 {
@@ -99,7 +100,7 @@ int tare_function()
     return state = state + 1;
 }
 
-void mensaje2()
+void coffeeMessage()
 { // del cafe
     lcd.clear();
     lcd.setCursor(0, 0);
@@ -114,8 +115,7 @@ void mensaje2()
     lcd.print("|Ta: ");
     lcd.print(digitalRead(tare_DOUT_PIN));
 }
-
-void mensaje1()
+void chemexMessage()
 { // del chemex
     lcd.clear();
     lcd.setCursor(0, 0);
@@ -186,14 +186,14 @@ void loop()
     {
     case 1:
         digitalWrite(weigth_DIN_PIN, LOW);
-        mensaje1();
+        chemexMessage();
         if (mensaje == 1)
         {
-            mensaje1();
+            chemexMessage();
         }
         else if (mensaje == 2)
         {
-            mensaje2();
+            coffeeMessage();
         }
         {
             int digital_enable = digitalRead(enable_DOUT_PIN);
@@ -210,14 +210,14 @@ void loop()
         Serial.print(gramaje, 1);
         Serial.println(" gr");
         delay(200);
-        mensaje2();
+        chemexMessage(); // First show the chemex message because this state is for the chemex
         if (mensaje == 1)
         {
-            mensaje1();
+            chemexMessage();
         }
         else if (mensaje == 2)
         {
-            mensaje2();
+            coffeeMessage();
         }
         if (gramaje >= chemex)
         {
@@ -240,14 +240,14 @@ void loop()
         Serial.print(gramaje, 1);
         Serial.println(" gr");
         delay(200);
-        mensaje2();
+        coffeeMessage();
         if (mensaje == 1)
         {
-            mensaje1();
+            chemexMessage();
         }
         else if (mensaje == 2)
         {
-            mensaje2();
+            coffeeMessage();
         }
         grUmbral = mostrar - 10;
         if (gramaje < grUmbral)
@@ -284,14 +284,14 @@ void loop()
         Serial.print(gramaje, 1);
         Serial.println(" gr");
         delay(200);
-        mensaje2();
+        chemexMessage();
         if (mensaje == 1)
         {
-            mensaje1();
+            chemexMessage();
         }
         else if (mensaje == 2)
         {
-            mensaje2();
+            coffeeMessage();
         }
         if (gramaje >= agua_1)
         {
@@ -314,14 +314,14 @@ void loop()
         Serial.print(gramaje, 1);
         Serial.println(" gr");
         delay(200);
-        mensaje2();
+        chemexMessage();
         if (mensaje == 1)
         {
-            mensaje1();
+            chemexMessage();
         }
         else if (mensaje == 2)
         {
-            mensaje2();
+            coffeeMessage();
         }
         if (gramaje >= agua_2)
         {
