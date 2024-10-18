@@ -48,7 +48,7 @@ stateDiagram
 
 
 
-## Pinout for Arduino Nano
+## Pinout for Arduino Nano - Finite-state machine
 
 Wiring for the Arduino Nano is as follows:
 
@@ -63,4 +63,16 @@ Wiring for the Arduino Nano is as follows:
 | D8  | tare_DOUT_PIN        | tare Xarm output      | DO5              |
 | GND | Ground               | Common ground         |     GND            |
 
+## Pinout for Arduino Nano - Dispensador de café
 
+Wiring for the Arduino Nano is as follows:
+
+| Pin | Arduino Nano Function | Description                  | Pin Connection SM    |
+|-----|-----------------------|------------------------------|----------------------|
+| D2  | interruptPin          | Enable pin from state machine|         ??¿¿         |
+| D3  | PWMA                  | Motor speed control          |                      |
+| D5  | pinServo1             | Servo control pin            |                      |
+| D10 | AIN1                  | Motor direction control 1    |                      |
+| D11 | AIN2                  | Motor direction control 2    |                      |
+| A2  | potentiometer         | Potentiometer input          |                      |
+| GND | Ground                | Common ground                |             GND      |
