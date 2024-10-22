@@ -14,9 +14,9 @@ int mensaje = 0;
 int caffe_total;
 
 // Potenciómetro
-int potPin = A1;     // Pin del potenciómetro
-int potValue = 0;    // Valor leído del potenciómetro
-int mappedValue = 0; // Valor mapeado entre 10 y 100
+int potPin = A1;      // Pin del potenciómetro
+int lastPotValue = 0; // Valor leído del potenciómetro
+int mappedValue = 0;  // Valor mapeado entre 10 y 100
 int lastPotValue = 0;
 
 // HX711 circuit wiring
@@ -52,7 +52,7 @@ int lastButtonState2 = 0;
 // Mecanismo de dispensación
 Servo servoMecha;
 const int pinServo = 10;
-const int angMax = 75;
+const int angMax = 70;
 int grUmbral;
 int ang;
 const int dispensador_en = 6; // Preliminar para activar el dispensador
@@ -88,6 +88,8 @@ void setup()
     lcd.setCursor(0, 0);
     // Servo del mecanismo
     servoMecha.attach(pinServo);
+    // Set angle to 0
+    servoMecha.write(0);
 }
 
 int tare_function()
