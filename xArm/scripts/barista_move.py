@@ -40,8 +40,9 @@ def get_digio_value(arm, pin=None):
 
 def control_gripper(arm, comm):
     # 0 = cerrar / 1 = abrir
+    msg = "cerrar" if comm == 0 else "abrir"
     arm.set_tgpio_digital(ionum=0, value=comm, delay_sec=0)
-    return print(f'Gripper = {comm}')
+    return print(f'Gripper = {comm} ({msg})')
 
 ## TÉCNICA
 
