@@ -41,7 +41,7 @@ const int weigth_DIN_PIN = 12;
 
 // Internal variables
 int chemex = 400 /*400 pesa el chemex*/, cafe_molido = 20, agua_1 = 20, agua_2 = 20; // Valores de prueba
-int state = 3;
+int state = 1;
 float gramaje = 0;
 
 // Botón para resetear estados
