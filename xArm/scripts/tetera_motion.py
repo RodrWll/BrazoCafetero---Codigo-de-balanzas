@@ -48,8 +48,9 @@ def move_circle(chemex_radius, interrupt_time):
     while True:
         # interrupción
         elapsed_time = time.time() - start_time
-        if elapsed_time >= interrupt_time:
-            print(f"Interrupción detectada (s): {elapsed_time}")
+        interrupt_signal = get_gpio_value(arm, pin=DI5_TARE)
+        if elapsed_time >= interrupt_time or interrupt_signal == HIGH:
+            print(f"Interrupción: {elapsed_time} / {interrupt_time} segundos. | DI5_TARE: {'HIGH' if not interrupt_signal else 'LOW'}")
             break
         # nuevas coordenadas
         y_offset = chemex_radius if toggle_pos else -chemex_radius
@@ -90,12 +91,12 @@ arm.set_position(*modify_position(pos_tetera, y=70), is_radian=False, speed=ARM_
 # wait_for_enter()
 
 # 2) acercar a tetera + abrir gripper
-control_gripper(arm, 1)
+control_gripper(arm, ABRIR)
 time.sleep(0.5)
 # arm.set_servo_angle(angle=[-43.7, 19.0, -32.8, -44.5, 99.9, 80.4], speed=ARM_SPEED, mvacc=ARM_ACCEL, wait=True, radius=0.0)
 arm.set_position(*pos_tetera, is_radian=False, wait=True, speed=ARM_SPEED*3, mvacc=ARM_ACCEL*2, radius=0.0)
 # 3) cerrar gripper + levantar tetera
-control_gripper(arm, 0)
+control_gripper(arm, CERRAR)
 # wait_for_enter()
 time.sleep(1)
 # arm.set_servo_angle(angle=[-52.5, -29.8, -30.8, -60.3, 115.9, 39.8], speed=ARM_SPEED, mvacc=ARM_ACCEL, wait=False, radius=60)
@@ -132,14 +133,14 @@ print("Descendiendo tetera...")
 # arm.set_servo_angle(angle=[-57.0, 17.7, -30.4, -57.7, 96.9, 79.3], speed=ARM_SPEED, mvacc=ARM_ACCEL, wait=True, radius=60)
 arm.set_position(*pos_tetera, is_radian=False, wait=True, speed=ARM_SPEED*3, mvacc=ARM_ACCEL*2, radius=0.0)
 time.sleep(2)
-control_gripper(arm, 1)
+control_gripper(arm, ABRIR)
 
 # 4) alejarse de tetera + cerrar gripper
 time.sleep(1)
 print("Alejándose de tetera...")
 # arm.set_servo_angle(angle=[-49.2, 12.5, -20.8, -49.5, 95.4, 83.7], speed=ARM_SPEED, mvacc=ARM_ACCEL, wait=True, radius=0.0)
 arm.set_position(*modify_position(pos_tetera, y=70), is_radian=False, wait=True, speed=ARM_SPEED*3, mvacc=ARM_ACCEL*2, radius=30)
-control_gripper(arm, 0)
+control_gripper(arm, CERRAR)
 
 ## REGRESAR A HOME
 arm.set_servo_angle(angle=[-52.8, -29.1, -8.0, -58.8, 111.4, 59.0], speed=ARM_SPEED, mvacc=ARM_ACCEL, wait=False, radius=30)
