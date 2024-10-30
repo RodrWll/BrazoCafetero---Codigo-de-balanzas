@@ -17,7 +17,7 @@ int caffe_total;
 int potPin = A1;      // Pin del potenciómetro
 int lastPotValue = 0; // Valor leído del potenciómetro
 int mappedValue = 0;  // Valor mapeado entre 10 y 100
-int lastPotValue = 0;
+int potValue = 0;
 
 // HX711 circuit wiring
 HX711 scaleCoffee;
@@ -41,7 +41,7 @@ const int weigth_DIN_PIN = 12;
 
 // Internal variables
 int chemex = 400 /*400 pesa el chemex*/, cafe_molido = 20, agua_1 = 20, agua_2 = 20; // Valores de prueba
-int state = 1;
+int state = 3;
 float gramaje = 0;
 
 // Botón para resetear estados
@@ -132,29 +132,29 @@ void chemexMessage()
     lcd.print("|Ta: ");
     lcd.print(digitalRead(tare_DOUT_PIN));
 }
-bool flagServo = false;
-void loop()
+void resetButtonAction()
 {
-    // boton para resetear
     buttonState2 = digitalRead(buttonPin);
     if (buttonState2 != lastButtonState2)
     {
+        lastButtonState2 = buttonState2;
         if (buttonState2 == LOW)
         { // Si el botón fue presionado
             lcd.clear();
             lcd.setCursor(0, 0);
             lcd.print("-----RESET------ ");
-            state = 1; // reseteo el estado y regreso ala estado anterior
+            state = 1; // reseteo el estado y regreso al estado anterior
             delay(900);
         }
         delay(50);
     }
-    lastButtonState2 = buttonState2;
-
-    // boton 2, para cambiar de pantalla
+}
+void toggleScreenButtonAction()
+{
     buttonState = digitalRead(buttonPin2);
     if (buttonState != lastButtonState)
     {
+        lastButtonState = buttonState;
         if (buttonState == LOW)
         {                               // Si el botón fue presionado
             toggleState = !toggleState; // Cambia el estado de la variable toggleState//empieza en 0
@@ -169,11 +169,17 @@ void loop()
         }
         delay(50);
     }
-    lastButtonState = buttonState;
+}
+
+bool flagServo = false;
+void loop()
+{
+    resetButtonAction();
+    toggleScreenButtonAction();
     // POTENCIOMETRO
     potValue = analogRead(potPin);
     mappedValue = map(potValue, 0, 1023, 0, 50);
-    if (abs(lastPotValue - mappedValue) > 2) // Change the value if the difference is greater than 2
+    if (abs(lastPotValue - mappedValue) > 5) // Change the value if the difference is greater than 2
     {
         lcd.clear();
         lcd.setCursor(0, 0);
@@ -188,6 +194,7 @@ void loop()
     switch (state)
     {
     case 1:
+    {
         digitalWrite(weigth_DIN_PIN, LOW);
         chemexMessage();
         if (mensaje == 1)
@@ -198,15 +205,16 @@ void loop()
         {
             coffeeMessage();
         }
-        {
-            int digital_enable = digitalRead(enable_DOUT_PIN);
-            if (digital_enable == 1)
-            { // ESPERARA AL BRAZO PARA EMPEZAR A MEDIR JUNTO AL DISPENSADOR
-                tare_function();
-            }
+
+        int digital_enable = digitalRead(enable_DOUT_PIN);
+        if (digital_enable == 1)
+        { // ESPERARA AL BRAZO PARA EMPEZAR A MEDIR JUNTO AL DISPENSADOR
+            tare_function();
         }
-        break;
+    }
+    break;
     case 2:
+    {
         digitalWrite(weigth_DIN_PIN, LOW);
         Serial.print("State 2: Weighing Chemex\nPeso: ");
         gramaje = scaleCoffee.get_units(); // la balanza del chemex solo medira
@@ -226,16 +234,18 @@ void loop()
         {
             Serial.println("Chemex reached the desired weight");
             digitalWrite(weigth_DIN_PIN, HIGH);
+
+            int tare_digital = digitalRead(tare_DOUT_PIN);
+
+            if (tare_digital == 1)
             {
-                int tare_digital = digitalRead(tare_DOUT_PIN);
-                if (tare_digital == 1)
-                {
-                    tare_function();
-                }
+                tare_function();
             }
         }
-        break;
+    }
+    break;
     case 3:
+    {
         digitalWrite(dispensador_en, HIGH);
         digitalWrite(weigth_DIN_PIN, LOW);
         Serial.print("State 3: Weighing Coffee\nPeso: ");
@@ -281,8 +291,10 @@ void loop()
                 }
             }
         }
-        break;
+    }
+    break;
     case 4:
+    {
         digitalWrite(weigth_DIN_PIN, LOW);
         Serial.print("State 4: Weighing Water 1\nPeso: ");
         gramaje = scaleChemex.get_units();
@@ -311,8 +323,10 @@ void loop()
                 }
             }
         }
-        break;
+    }
+    break;
     case 5:
+    {
         digitalWrite(weigth_DIN_PIN, LOW);
         Serial.print("State 5: Weighing Water 2\nPeso: ");
         gramaje = scaleChemex.get_units();
@@ -345,11 +359,17 @@ void loop()
                 }
             }
         }
-        break;
+    }
+    break;
     case 6:
-        break;
+    {
+        // No operation for state 6
+    }
+    break;
     default:
+    {
         Serial.println("Unknown state.");
-        break;
+    }
+    break;
     }
 }
