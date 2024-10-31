@@ -23,15 +23,15 @@ int potValue = 0;
 HX711 scaleCoffee;
 HX711 scaleChemex;
 // CONSTANTS TO FIRST SCALE - COFFE
-const int scaleCoffee_DOUT_PIN = 4;
-const int scaleCoffee_SCK_PIN = 5;
-const double scaleCoffee_FACTOR = -447.76; // Change this value!!!
-const int scaleCoffee_OFFSET = 617864;     // Change this value!!!
+const int scaleCoffee_DOUT_PIN =8;
+const int scaleCoffee_SCK_PIN =9;
+const double scaleCoffee_FACTOR = 420.4; // Change this value!!!
+const int scaleCoffee_OFFSET = 4294906620;     // Change this value!!!
 // CONSTANTS TO SECOND SCALE - CHEMEX
-const int scaleChemex_DOUT_PIN = 8;
-const int scaleChemex_SCK_PIN = 9;
-const double scaleChemex_FACTOR = 420.4;   // Change this value!!!
-const int scaleChemex_OFFSET = 4294906620; // Change this value!!!
+const int scaleChemex_DOUT_PIN = 4;
+const int scaleChemex_SCK_PIN = 5;
+const double scaleChemex_FACTOR = -447.76;   // Change this value!!!
+const int scaleChemex_OFFSET = 617864; // Change this value!!!
 
 // INPUTS PIN
 const int tare_DOUT_PIN = 3;
@@ -221,7 +221,7 @@ void loop()
     {
         digitalWrite(weigth_DIN_PIN, LOW);
         Serial.print("State 2: Weighing Chemex\nPeso: ");
-        gramaje = scaleCoffee.get_units(); // la balanza del chemex solo medira
+        gramaje = scaleChemex.get_units(); // la balanza del chemex solo medira
         Serial.print(gramaje, 1);
         Serial.println(" gr");
         delay(200);
@@ -253,7 +253,7 @@ void loop()
         digitalWrite(dispensador_en, HIGH);
         digitalWrite(weigth_DIN_PIN, LOW);
         Serial.print("State 3: Weighing Coffee\nPeso: ");
-        gramaje = scaleChemex.get_units(); // ahora la balanza del cafe sera la que mida
+        gramaje = scaleCoffee.get_units(); // ahora la balanza del cafe sera la que mida
         Serial.print(gramaje, 1);
         Serial.println(" gr");
         delay(200);
