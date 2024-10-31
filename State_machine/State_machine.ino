@@ -57,6 +57,8 @@ int grUmbral;
 int ang;
 const int dispensador_en = 6; // Preliminar para activar el dispensador
 
+bool flagServo = false;
+
 void setup()
 {
     delay(500);
@@ -117,6 +119,7 @@ void coffeeMessage()
     lcd.print("|Ta: ");
     lcd.print(digitalRead(tare_DOUT_PIN));
 }
+
 void chemexMessage()
 { // del chemex
     lcd.clear();
@@ -132,6 +135,7 @@ void chemexMessage()
     lcd.print("|Ta: ");
     lcd.print(digitalRead(tare_DOUT_PIN));
 }
+
 void resetButtonAction()
 {
     buttonState2 = digitalRead(buttonPin);
@@ -149,6 +153,7 @@ void resetButtonAction()
         delay(50);
     }
 }
+
 void toggleScreenButtonAction()
 {
     buttonState = digitalRead(buttonPin2);
@@ -171,7 +176,6 @@ void toggleScreenButtonAction()
     }
 }
 
-bool flagServo = false;
 void loop()
 {
     resetButtonAction();
