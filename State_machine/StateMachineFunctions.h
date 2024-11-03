@@ -22,38 +22,41 @@ const int dispenser_enabled = 6;
 // Constants for other inputs
 const int resetButtonPin = 2;
 const int messageToggleButtonPin = 11;
-const int debounceDuration = 50;
+
+// Constants for potentiometer
+const int potPin = A1;
+const int pinServo = 10;
+
+// Internal variables
+double chemex = 400;
+double cafe_molido = 20;
+double agua_1 = 20;
+double agua_2 = 20;
+int state = 1;
+double scaleCoffee_grams = 0;
+double scaleChemex_grams = 0;
 int resetButtonState = 0;
 int lastResetButtonValue = 0;
 unsigned long lastTimeButtonStateChanged = 0;
 unsigned long lastResetButtonPressTime = 0;
 int lastButtonValue = 0;
-int mensaje = 0;
-// Constants for potentiometer
-const int potPin = A1;
 int potValue = 0;
 int lastPotValue = 0;
 int mappedValue = 0;
 
-// Constants for error
-const double ERROR = 0.5;
-
-// Internal variables
-double chemex = 400, cafe_molido = 20, agua_1 = 20, agua_2 = 20; // Test values
-int state = 1;
-double scaleCoffee_grams = 0;
-double scaleChemex_grams = 0;
 // Servo mechanism
-const int pinServo = 10;
 const int maxAngle = 70;
-int grThreshold;
+
 // start closing angle
 int angleClosing = 25;
 int grStartClosing = 10;
 int grEndClosing = 2;
+int grindThresholdStart = cafe_molido - grStartClosing;
+int grindThresholdEnd = cafe_molido - grEndClosing;
 float slope = (float)(maxAngle - angleClosing) / (grStartClosing - grEndClosing);
-float servoAngle;
+float servoAngle = 0;
 bool flagServo = false;
+int mensaje = 0;
 
 // Objects
 LiquidCrystal_I2C lcd(0x27, 16, 2);
@@ -106,7 +109,7 @@ void chemexMessage()
 // Function to reset the states
 void resetButtonAction()
 {
-    if (millis() - lastResetButtonPressTime > debounceDuration)
+    if (millis() - lastResetButtonPressTime > DEBOUNCE)
     {
         int resetButtonState = digitalRead(resetButtonPin);
         if (resetButtonState != lastResetButtonValue)
@@ -123,6 +126,7 @@ void resetButtonAction()
                 scaleCoffee.tare(20);
                 scaleChemex.tare(20);
                 mechanicalServo.write(0);
+                flagServo = false;
             }
         }
     }
@@ -130,7 +134,7 @@ void resetButtonAction()
 // Function to read the button
 void toggleScreenButtonAction()
 {
-    if (millis() - lastTimeButtonStateChanged > debounceDuration)
+    if (millis() - lastTimeButtonStateChanged > DEBOUNCE)
     {
         int buttonState = digitalRead(messageToggleButtonPin);
         if (buttonState != lastButtonValue)

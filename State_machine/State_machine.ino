@@ -3,9 +3,9 @@
 #include "HX711.h"   // Required for HX711 load cell amplifier
 #include <LiquidCrystal_I2C.h>
 #include "Servo.h"
-#include "StateMachineFunctions.h"
-
 #define ERROR 0.5 // Error en gramos
+#define DEBOUNCE 50
+#include "StateMachineFunctions.h"
 
 void setup()
 {
@@ -136,18 +136,24 @@ void loop()
         {
             coffeeMessage();
         }
-        grThreshold = cafe_molido - 10;
-        if (scaleCoffee_grams < grThreshold && !flagServo)
+        if (scaleCoffee_grams < grindThresholdStart && !flagServo)
         {
             mechanicalServo.write(maxAngle); // In this case only the servo will be activated once
             flagServo = true;
         }
-        else if (scaleCoffee_grams >= grThreshold)
+        // also cafe_molido - scaleCoffee_grams <= grStartClosing
+        else if (grindThresholdStart <= scaleCoffee_grams && scaleCoffee_grams <= grindThresholdEnd)
         {
-            servoAngle = maxAngle - 22.5 * (scaleCoffee_grams - (cafe_molido - 2));
+            // The servo will be activated to close the dispenser starts at 10 grams (grStartClosing) before the desired weight.
+            // The angle will be closing as the coffee is being dispensed to 2 grams (grEndClosing) before the desired weight, and the final angle is defined by angleClosing now set to 25 degrees
+            servoAngle = maxAngle - slope * (scaleCoffee_grams - (cafe_molido - 2));
             mechanicalServo.write(servoAngle);
-            flagServo = false; // Resetear la bandera
         }
+        else if (cafe_molido - scaleCoffee_grams <= grEndClosing && cafe_molido - scaleCoffee_grams > ERROR)
+        {
+            // enable the dispenser PWM signal will be sent to the dispenser to reach the desired weight
+                }
+
         if (cafe_molido - scaleCoffee_grams <= ERROR)
         {
             mechanicalServo.write(0);
