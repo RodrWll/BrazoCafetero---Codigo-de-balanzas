@@ -19,17 +19,15 @@ void setup()
     pinMode(resetButtonPin, INPUT_PULLUP);
     // Inicializar balanzas
     scaleCoffee.begin(scaleCoffee_DOUT_PIN, scaleCoffee_SCK_PIN);
-    scaleCoffee.set_offset(scaleCoffee_OFFSET);
     scaleCoffee.set_scale(scaleCoffee_FACTOR);
     scaleCoffee.tare(20);
     // Set mode of real time running average to 7 and filter coefficient to 0.5 for
     scaleCoffee.set_runavg_mode();
 
     scaleChemex.begin(scaleChemex_DOUT_PIN, scaleChemex_SCK_PIN);
-    scaleChemex.set_offset(scaleChemex_OFFSET);
     scaleChemex.set_scale(scaleChemex_FACTOR);
     scaleChemex.tare(20);
-    scaleChemex.set_medavg_mode();
+    scaleChemex.set_runavg_mode();
     // señales
     pinMode(weigth_DIN_PIN, OUTPUT);
     pinMode(dispenser_enabled, OUTPUT);
@@ -45,25 +43,30 @@ void setup()
     // Set angle to 0
     mechanicalServo.write(0);
 }
+unsigned long previousMillis = 0; // Variable to store the last time coffeeMessage was called
+const long interval = 200;        // Interval at which to call coffeeMessage (200 milliseconds)
 
 void loop()
 {
+    unsigned long currentMillis = millis();
+
     resetButtonAction();
-    toggleScreenButtonAction();
+    // toggleScreenButtonAction();
+
     // POTENCIOMETRO
-    potValue = analogRead(potPin);
-    mappedValue = map(potValue, 0, 1023, 0, 50);
-    if (abs(lastPotValue - mappedValue) > 5) // Change the value if the difference is greater than 2
-    {
-        lcd.clear();
-        lcd.setCursor(0, 0);
-        lcd.print("Valor cafe: ");
-        cafe_molido = cafe_molido + mappedValue;
-        lcd.print(cafe_molido);
-        lcd.setCursor(0, 1);
-        delay(100);
-    }
-    lastPotValue = mappedValue;
+    // potValue = analogRead(potPin);
+    // mappedValue = map(potValue, 0, 1023, 0, 50);
+    // if (abs(lastPotValue - mappedValue) > 5) // Change the value if the difference is greater than 2
+    // {
+    //     lcd.clear();
+    //     lcd.setCursor(0, 0);
+    //     lcd.print("Valor cafe: ");
+    //     cafe_molido = cafe_molido + mappedValue;
+    //     lcd.print(cafe_molido);
+    //     lcd.setCursor(0, 1);
+    //     delay(100);
+    // }
+    // lastPotValue = mappedValue;
     // estados
     switch (state)
     {
@@ -91,11 +94,12 @@ void loop()
     {
         digitalWrite(weigth_DIN_PIN, LOW);
         Serial.print("State 2: Weighing Chemex\nPeso: ");
-        scaleChemex_grams = scaleChemex.get_units(7); // la balanza del chemex solo medira
+        scaleChemex_grams = scaleChemex.get_units(10); // la balanza del chemex solo medira
         Serial.print(scaleChemex_grams, 1);
         Serial.println(" gr");
         delay(200);
         chemexMessage(); // First show the chemex message because this state is for the chemex
+
         if (mensaje == 1)
         {
             chemexMessage();
@@ -123,11 +127,14 @@ void loop()
         digitalWrite(dispenser_enabled, HIGH);
         digitalWrite(weigth_DIN_PIN, LOW);
         Serial.print("State 3: Weighing Coffee\nPeso: ");
-        scaleCoffee_grams = scaleCoffee.get_units(7); // ahora la balanza del cafe sera la que mida
+        scaleCoffee_grams = scaleCoffee.get_units(10); // ahora la balanza del cafe sera la que mida
         Serial.print(scaleCoffee_grams, 1);
         Serial.println(" gr");
-        delay(200);
-        coffeeMessage();
+        if (currentMillis - previousMillis >= interval)
+        {
+            previousMillis = currentMillis;
+            coffeeMessage();
+        }
         if (mensaje == 1)
         {
             chemexMessage();
@@ -136,7 +143,7 @@ void loop()
         {
             coffeeMessage();
         }
-        if (scaleCoffee_grams < grindThresholdStart && !flagServo)
+        if (scaleCoffee_grams < grindThresholdStart /*&& !flagServo*/)
         {
             mechanicalServo.write(maxAngle); // In this case only the servo will be activated once
             flagServo = true;
@@ -146,13 +153,13 @@ void loop()
         {
             // The servo will be activated to close the dispenser starts at 10 grams (grStartClosing) before the desired weight.
             // The angle will be closing as the coffee is being dispensed to 2 grams (grEndClosing) before the desired weight, and the final angle is defined by angleClosing now set to 25 degrees
-            servoAngle = maxAngle - slope * (scaleCoffee_grams - (cafe_molido - 2));
+            servoAngle = maxAngle - slope * (scaleCoffee_grams - (grindThresholdStart));
             mechanicalServo.write(servoAngle);
         }
         else if (cafe_molido - scaleCoffee_grams <= grEndClosing && cafe_molido - scaleCoffee_grams > ERROR)
         {
             // enable the dispenser PWM signal will be sent to the dispenser to reach the desired weight
-                }
+        }
 
         if (cafe_molido - scaleCoffee_grams <= ERROR)
         {
@@ -163,7 +170,7 @@ void loop()
             int tare_digital = digitalRead(tare_DOUT_PIN);
             if (tare_digital == 1)
             {
-                tare_function();
+                // tare_function();
             }
         }
     }

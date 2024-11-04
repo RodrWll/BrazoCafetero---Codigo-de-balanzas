@@ -10,7 +10,7 @@ const int scaleCoffee_OFFSET = 4294906620;
 // Constants for scale chemex
 const int scaleChemex_DOUT_PIN = 4;
 const int scaleChemex_SCK_PIN = 5;
-const double scaleChemex_FACTOR = -430.52;
+const double scaleChemex_FACTOR = -447.52;
 const int scaleChemex_OFFSET = 617864;
 // Constants for inputs - xArm
 const int tare_DOUT_PIN = 3;
@@ -45,10 +45,10 @@ int lastPotValue = 0;
 int mappedValue = 0;
 
 // Servo mechanism
-const int maxAngle = 70;
+const int maxAngle = 65;
 
 // start closing angle
-int angleClosing = 25;
+int angleClosing = 20;
 int grStartClosing = 10;
 int grEndClosing = 2;
 int grindThresholdStart = cafe_molido - grStartClosing;
@@ -121,8 +121,6 @@ void resetButtonAction()
                 state = 1;
                 scaleCoffee_grams = 0;
                 scaleChemex_grams = 0;
-                scaleCoffee.set_offset(scaleCoffee_OFFSET);
-                scaleChemex.set_offset(scaleChemex_OFFSET);
                 scaleCoffee.tare(20);
                 scaleChemex.tare(20);
                 mechanicalServo.write(0);

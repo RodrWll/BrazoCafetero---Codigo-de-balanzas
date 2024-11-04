@@ -47,7 +47,7 @@ void loop()
     if (abs(currentPotentiometerValue - lastPotentiometerValue) >= 5)
     {
         // Map the potentiometer value to a value between 0 and 255
-        int speed = map(currentPotentiometerValue, 0, 1023, 0, 255);
+        int speed = map(currentPotentiometerValue, 0, 1023, 0, 140);
         // Move the motor and change the speed
         digitalWrite(AIN1, LOW);
         digitalWrite(AIN2, HIGH);
