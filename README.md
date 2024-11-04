@@ -46,22 +46,27 @@ stateDiagram
 ```
 
 
-
+![alt text](img/Pinout-NANO_latest.png)
 
 ## Pinout for Arduino Nano - Finite-state machine
 
 Wiring for the Arduino Nano is as follows:
 
-| Pin | Arduino Nano Function | Description          |Pin Xarm Connection |
-|-----|-----------------------|----------------------|--------------------|
-| D4  | scaleChemex_DOUT_PIN | signal pin 1          |                    |
-| D5  | scaleChemex_SCK_PIN  | clock signal 1        |                    |       
-| D8  | scaleCoffee_DOUT_PIN | signal pin 2          |                    |
-| D9  | scaleCoffee_SCK_PIN  | clock signal 2        |                    |
-| D8  | weigth_DIN_PIN       | weigth Xarm input     | DI1                |
-| D8  | enable_DOUT_PIN      | enable Xarm output    | DO4                |
-| D8  | tare_DOUT_PIN        | tare Xarm output      | DO5              |
-| GND | Ground               | Common ground         |     GND            |
+| Pin | Arduino Nano Function  | Description          | Pin Xarm Connection |
+|-----|------------------------|----------------------|---------------------|
+| D2  | resetButtonPin         | Reset button input   |                     |
+| D3  | tare_DOUT_PIN          | Tare Xarm output     | DO5                 |
+| D4  | scaleChemex_DOUT_PIN   | Signal pin 1         |                     |
+| D5  | scaleChemex_SCK_PIN    | Clock signal 1       |                     |       
+| D6  | dispenser_enabled      | Dispenser enabled    |                     |
+| D7  | enable_DOUT_PIN        | Enable Xarm output   | DO4                 |
+| D8  | scaleCoffee_DOUT_PIN   | Signal pin 2         |                     |
+| D9  | scaleCoffee_SCK_PIN    | Clock signal 2       |                     |
+| D10 | pinServo               | Servo control        |                     |
+| D11 | messageToggleButtonPin | Message toggle button|                     |
+| D12 | weigth_DIN_PIN         | Weight Xarm input    | DI1                 |
+| A1  | potPin                 | Potentiometer input  |                     |
+| GND | Ground                 | Common ground        | GND                 |
 
 ## Pinout for Arduino Nano - Dispensador de café
 
