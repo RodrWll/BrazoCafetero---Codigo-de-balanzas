@@ -46,7 +46,7 @@ void setup()
 unsigned long previousMillis = 0; // Variable to store the last time coffeeMessage was called
 const long interval = 200;        // Interval at which to call coffeeMessage (200 milliseconds)
 
-int velDispensador = 130;
+int velDispensador = 145;
 
 void loop()
 {
@@ -148,7 +148,7 @@ void loop()
         if (scaleCoffee_grams < grindThresholdStart /*&& !flagServo*/)
         {
             mechanicalServo.write(maxAngle); // In this case only the servo will be activated once
-            analogWrite(dispenser_enabled, velDispensador);
+            analogWrite(dispenser_enabled, velDispensador * 1.75);
             flagServo = true;
         }
         // also cafe_molido - scaleCoffee_grams <= grStartClosing
@@ -158,17 +158,18 @@ void loop()
             // The angle will be closing as the coffee is being dispensed to 2 grams (grEndClosing) before the desired weight, and the final angle is defined by angleClosing now set to 25 degrees
             servoAngle = maxAngle - slope * (scaleCoffee_grams - (grindThresholdStart));
             mechanicalServo.write(servoAngle);
-            analogWrite(dispenser_enabled, velDispensador / 2);
+            analogWrite(dispenser_enabled, velDispensador*1.55);
         }
         else if (cafe_molido - scaleCoffee_grams <= grEndClosing && cafe_molido - scaleCoffee_grams > ERROR)
         {
             // enable the dispenser PWM signal will be sent to the dispenser to reach the desired weight
-            analogWrite(dispenser_enabled, velDispensador * 1.5);
+            analogWrite(dispenser_enabled, velDispensador * 1.75);
         }
 
         if (cafe_molido - scaleCoffee_grams <= ERROR)
         {
             mechanicalServo.write(0);
+            analogWrite(dispenser_enabled, 0);
             Serial.println("Coffee reached the desired weight");
             digitalWrite(weigth_DIN_PIN, HIGH);
             Serial.println("\nWaiting for the signal tare to jump to the next state.");
