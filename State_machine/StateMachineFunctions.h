@@ -32,7 +32,7 @@ double chemex = 400;
 double cafe_molido = 20;
 double agua_1 = 20;
 double agua_2 = 20;
-int state = 3;
+int state = 1;
 double scaleCoffee_grams = 0;
 double scaleChemex_grams = 0;
 int resetButtonState = 0;
@@ -49,8 +49,8 @@ const int maxAngle = 65;
 
 // start closing angle
 int angleClosing = 30;
-int grStartClosing = 10;
-int grEndClosing = 2;
+int grStartClosing = 15;
+int grEndClosing = 5;
 int grindThresholdStart = cafe_molido - grStartClosing;
 int grindThresholdEnd = cafe_molido - grEndClosing;
 float slope = (float)(maxAngle - angleClosing) / (grStartClosing - grEndClosing);
@@ -118,7 +118,7 @@ void resetButtonAction()
             lastResetButtonValue = resetButtonState;
             if (resetButtonState == HIGH)
             {
-                state = 3;
+                state = 1;
                 scaleCoffee_grams = 0;
                 scaleChemex_grams = 0;
                 scaleCoffee.tare(20);
