@@ -6,7 +6,7 @@ import numpy
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from xarm.wrapper import XArmAPI
 
-from scripts.barista_move import *
+from scripts.barista_func import *
 
 ip = "192.168.1.203"
 arm = XArmAPI(ip)
@@ -18,26 +18,15 @@ arm.reset(wait=False)
 print("Conectado al xArm6.")
 initial_gpio = get_gpio_value(arm)
 print("GPIOs iniciales: ", initial_gpio)
-arm.move_gohome()
-print("Go home...\n")
-
-
-def tarar(value):
-    arm.set_cgpio_digital(DO5_TARE, value)
-    time.sleep(0.5)
-    print(f"TARE listo: {value}")
-def print_msg(msg):
-    estados = ['ST_ON', 'ST_TARE', 'ST_CHMX', 'ST_CAFE', 'ST_BLOOM', 'ST_SATUR', 'ST_OFF']
-    print(f"{estados[estado]}: {msg}")
-
+# arm.move_gohome()
+# print("Go home...\n")
 
 ## RUTINA
 print("Iniciando rutina...\n")
 
-print("Probando gripper...\n")
-control_gripper(arm, ABRIR)
-control_gripper(arm, CERRAR)
-
+# print("Probando gripper...\n")
+# control_gripper(arm, ABRIR)
+# control_gripper(arm, CERRAR)
 
 estado = ST_ON
 arm.set_cgpio_digital(DO4_ENABLE, HIGH)

@@ -6,7 +6,7 @@ import numpy
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from xarm.wrapper import XArmAPI
 
-from scripts.barista_move import *
+from scripts.barista_func import *
 import select
 
 ip = "192.168.1.203"
@@ -46,7 +46,7 @@ def move_circle(chemex_coords, chemex_radius, interrupt_time):
     while True:
         # interrupción
         elapsed_time = time.time() - start_time
-        interrupt_signal = get_gpio_value(arm, pin=DO5_TARE)
+        interrupt_signal = leer_gpio(arm, pin=DO5_TARE)
         if elapsed_time >= interrupt_time or interrupt_signal == HIGH:
             print(f"Interrupción: {elapsed_time} / {interrupt_time} segundos. | DI5_TARE: {'HIGH' if not interrupt_signal else 'LOW'}")
             break

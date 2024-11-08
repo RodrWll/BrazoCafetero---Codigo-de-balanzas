@@ -6,7 +6,7 @@ import numpy
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from xarm.wrapper import XArmAPI
 
-from scripts.barista_move import *
+from scripts.barista_func import *
 import select
 import keyboard
 
