@@ -3,28 +3,28 @@
 #define STATE_MACHINE_FUNCTIONS_H
 
 // Constants for scale coffee
-const int scaleCoffee_DOUT_PIN = 8;
-const int scaleCoffee_SCK_PIN = 9;
+const int scaleCoffee_DOUT_PIN = 4;
+const int scaleCoffee_SCK_PIN = 5;
 const double scaleCoffee_FACTOR = 420.52;
 const int scaleCoffee_OFFSET = 4294906620;
 // Constants for scale chemex
-const int scaleChemex_DOUT_PIN = 4;
-const int scaleChemex_SCK_PIN = 5;
+const int scaleChemex_DOUT_PIN = 6;
+const int scaleChemex_SCK_PIN = 7;
 const double scaleChemex_FACTOR = -447.52;
 const int scaleChemex_OFFSET = 617864;
 // Constants for inputs - xArm
-const int tare_DOUT_PIN = 3;
-const int enable_DOUT_PIN = 7;
+const int tare_DOUT_PIN = 12;
+const int enable_DOUT_PIN = 11;
 // Constants for outputs - xArm
-const int weigth_DIN_PIN = 12;
+const int weigth_DIN_PIN = 8;
 // Constants for outputs - dispenser
-const int dispenser_enabled = 6;
+const int dispenser_enabled = 9;
 // Constants for other inputs
-const int resetButtonPin = 2;
-const int messageToggleButtonPin = 11;
+const int resetButtonPin = 3;
+const int messageToggleButtonPin = 2;
 
 // Constants for potentiometer
-const int potPin = A1;
+const int potPin = A6;
 const int pinServo = 10;
 
 // Internal variables
