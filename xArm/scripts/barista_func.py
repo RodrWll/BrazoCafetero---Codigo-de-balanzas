@@ -24,7 +24,8 @@ CERRAR = 0
 
 ## xARM
 ARM_ACCEL = 200
-ARM_SPEED = 20
+ARM_SPEED_J = 30
+ARM_SPEED_P = 50
 # estados
 ST_ON = 0
 ST_TARE = 1
@@ -110,11 +111,11 @@ def leer_gpio(arm, pin=None, output=False):
     
     return dig_states if pin is None else dig_states[pin]
 
-def controlar_gripper(arm, comm, wait_min):
+def controlar_gripper(arm, comm, wait=0):
     """
     comm: ABRIR (1) o CERRAR (0)
     """
     msg = "CERRAR" if comm == CERRAR else "ABRIR"
     arm.set_tgpio_digital(ionum=0, value=comm)
-    time.sleep(wait_min)
+    time.sleep(wait)
     return f'controlar_gripper({comm}) - {msg}'
