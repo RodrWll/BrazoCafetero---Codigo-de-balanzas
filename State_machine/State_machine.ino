@@ -3,59 +3,9 @@
 #include "HX711.h"   // Required for HX711 load cell amplifier
 #include <LiquidCrystal_I2C.h>
 #include "Servo.h"
-
-// LCD
-LiquidCrystal_I2C lcd(0x27, 16, 2);
-const int buttonPin2 = 11; // Pin al que está conectado el botón
-int buttonState = 0;       // Estado actual del botón
-int lastButtonState = 0;   // Último estado del botón
-int toggleState = 0;       // Estado para alternar entre mensajes
-int mensaje = 0;
-int caffe_total;
-
-// Potenciómetro
-int potPin = A1;      // Pin del potenciómetro
-int lastPotValue = 0; // Valor leído del potenciómetro
-int mappedValue = 0;  // Valor mapeado entre 10 y 100
-int potValue = 0;
-
-// HX711 circuit wiring
-HX711 scaleCoffee;
-HX711 scaleChemex;
-// CONSTANTS TO FIRST SCALE - COFFE
-const int scaleCoffee_DOUT_PIN = 4;
-const int scaleCoffee_SCK_PIN = 5;
-const double scaleCoffee_FACTOR = -447.76; // Change this value!!!
-const int scaleCoffee_OFFSET = 617864;     // Change this value!!!
-// CONSTANTS TO SECOND SCALE - CHEMEX
-const int scaleChemex_DOUT_PIN = 8;
-const int scaleChemex_SCK_PIN = 9;
-const double scaleChemex_FACTOR = 420.4;   // Change this value!!!
-const int scaleChemex_OFFSET = 4294906620; // Change this value!!!
-
-// INPUTS PIN
-const int tare_DOUT_PIN = 3;
-const int enable_DOUT_PIN = 7;
-// OUTPUTS PIN
-const int weigth_DIN_PIN = 12;
-
-// Internal variables
-int chemex = 400 /*400 pesa el chemex*/, cafe_molido = 20, agua_1 = 20, agua_2 = 20; // Valores de prueba
-int state = 1;
-float gramaje = 0;
-
-// Botón para resetear estados
-const int buttonPin = 2; // Pin del botón
-int buttonState2 = 0;
-int lastButtonState2 = 0;
-
-// Mecanismo de dispensación
-Servo servoMecha;
-const int pinServo = 10;
-const int angMax = 70;
-int grUmbral;
-int ang;
-const int dispensador_en = 6; // Preliminar para activar el dispensador
+#define ERROR 0.5 // Error en gramos
+#define DEBOUNCE 50
+#include "StateMachineFunctions.h"
 
 void setup()
 {
@@ -64,132 +14,62 @@ void setup()
     Serial.println("Starting...");
     Serial.println("------------------------");
     // boton 2
-    pinMode(buttonPin2, INPUT_PULLUP);
+    pinMode(messageToggleButtonPin, INPUT_PULLUP);
     // Configuración del botón con interrupción
-    pinMode(buttonPin, INPUT_PULLUP);
+    pinMode(resetButtonPin, INPUT_PULLUP);
     // Inicializar balanzas
     scaleCoffee.begin(scaleCoffee_DOUT_PIN, scaleCoffee_SCK_PIN);
-    scaleCoffee.set_offset(scaleCoffee_OFFSET);
     scaleCoffee.set_scale(scaleCoffee_FACTOR);
     scaleCoffee.tare(20);
+    // Set mode of real time running average to 7 and filter coefficient to 0.5 for
+    scaleCoffee.set_runavg_mode();
+
     scaleChemex.begin(scaleChemex_DOUT_PIN, scaleChemex_SCK_PIN);
-    scaleChemex.set_offset(scaleChemex_OFFSET);
     scaleChemex.set_scale(scaleChemex_FACTOR);
     scaleChemex.tare(20);
+    scaleChemex.set_runavg_mode();
     // señales
     pinMode(weigth_DIN_PIN, OUTPUT);
-    pinMode(dispensador_en, OUTPUT);
+    pinMode(9, OUTPUT);
     pinMode(tare_DOUT_PIN, INPUT_PULLUP);
     pinMode(enable_DOUT_PIN, INPUT_PULLUP);
-    pinMode(buttonPin, INPUT_PULLUP); // Configura el botón como entrada
+    pinMode(resetButtonPin, INPUT_PULLUP); // Configura el botón como entrada
     // inicializar lcd
     lcd.init();      // Inicializa el LCD
     lcd.backlight(); // Enciende la retroiluminación del LCD
     lcd.setCursor(0, 0);
     // Servo del mecanismo
-    servoMecha.attach(pinServo);
+    mechanicalServo.attach(pinServo);
     // Set angle to 0
-    servoMecha.write(0);
+    mechanicalServo.write(0);
 }
+unsigned long previousMillis = 0; // Variable to store the last time coffeeMessage was called
+const long interval = 200;        // Interval at which to call coffeeMessage (200 milliseconds)
 
-int tare_function()
-{
-    scaleCoffee.set_offset(scaleCoffee_OFFSET);
-    scaleCoffee.tare(20);
-    scaleChemex.set_offset(scaleChemex_OFFSET);
-    scaleChemex.tare(20);
-    Serial.println("Tare Signal Received...pls wait");
-    return state = state + 1;
-}
+int velDispensador = 125;
 
-void coffeeMessage()
-{ // del cafe
-    lcd.clear();
-    lcd.setCursor(0, 0);
-    lcd.print("COFFEE ");
-    lcd.print(" Gr:");
-    lcd.print(gramaje);
-    lcd.setCursor(0, 1); // comlumnas/filas
-    lcd.print("St:");
-    lcd.print(state);
-    lcd.print("|En: ");
-    lcd.print(digitalRead(enable_DOUT_PIN));
-    lcd.print("|Ta: ");
-    lcd.print(digitalRead(tare_DOUT_PIN));
-}
-void chemexMessage()
-{ // del chemex
-    lcd.clear();
-    lcd.setCursor(0, 0);
-    lcd.print("CHEMEX ");
-    lcd.print(" Gr:");
-    lcd.print(gramaje);
-    lcd.setCursor(0, 1); // comlumnas/filas
-    lcd.print("St:");
-    lcd.print(state);
-    lcd.print("|En: ");
-    lcd.print(digitalRead(enable_DOUT_PIN));
-    lcd.print("|Ta: ");
-    lcd.print(digitalRead(tare_DOUT_PIN));
-}
-void resetButtonAction()
-{
-    buttonState2 = digitalRead(buttonPin);
-    if (buttonState2 != lastButtonState2)
-    {
-        lastButtonState2 = buttonState2;
-        if (buttonState2 == LOW)
-        { // Si el botón fue presionado
-            lcd.clear();
-            lcd.setCursor(0, 0);
-            lcd.print("-----RESET------ ");
-            state = 1; // reseteo el estado y regreso al estado anterior
-            delay(900);
-        }
-        delay(50);
-    }
-}
-void toggleScreenButtonAction()
-{
-    buttonState = digitalRead(buttonPin2);
-    if (buttonState != lastButtonState)
-    {
-        lastButtonState = buttonState;
-        if (buttonState == LOW)
-        {                               // Si el botón fue presionado
-            toggleState = !toggleState; // Cambia el estado de la variable toggleState//empieza en 0
-            if (toggleState)
-            {
-                mensaje = 2; // Muestra el segundo mensaje
-            }
-            else
-            {
-                mensaje = 1; // Vuelve a mostrar el primer mensaje
-            }
-        }
-        delay(50);
-    }
-}
-
-bool flagServo = false;
 void loop()
 {
+
+    unsigned long currentMillis = millis();
+
     resetButtonAction();
-    toggleScreenButtonAction();
+    // toggleScreenButtonAction();
+
     // POTENCIOMETRO
-    potValue = analogRead(potPin);
-    mappedValue = map(potValue, 0, 1023, 0, 50);
-    if (abs(lastPotValue - mappedValue) > 5) // Change the value if the difference is greater than 2
-    {
-        lcd.clear();
-        lcd.setCursor(0, 0);
-        lcd.print("Valor cafe: ");
-        caffe_total = cafe_molido + mappedValue;
-        lcd.print(caffe_total);
-        lcd.setCursor(0, 1);
-        delay(100);
-    }
-    lastPotValue = mappedValue;
+    // potValue = analogRead(potPin);
+    // mappedValue = map(potValue, 0, 1023, 0, 50);
+    // if (abs(lastPotValue - mappedValue) > 5) // Change the value if the difference is greater than 2
+    // {
+    //     lcd.clear();
+    //     lcd.setCursor(0, 0);
+    //     lcd.print("Valor cafe: ");
+    //     cafe_molido = cafe_molido + mappedValue;
+    //     lcd.print(cafe_molido);
+    //     lcd.setCursor(0, 1);
+    //     delay(100);
+    // }
+    // lastPotValue = mappedValue;
     // estados
     switch (state)
     {
@@ -217,11 +97,12 @@ void loop()
     {
         digitalWrite(weigth_DIN_PIN, LOW);
         Serial.print("State 2: Weighing Chemex\nPeso: ");
-        gramaje = scaleCoffee.get_units(); // la balanza del chemex solo medira
-        Serial.print(gramaje, 1);
+        scaleChemex_grams = scaleChemex.get_units(10); // la balanza del chemex solo medira
+        Serial.print(scaleChemex_grams, 1);
         Serial.println(" gr");
         delay(200);
         chemexMessage(); // First show the chemex message because this state is for the chemex
+
         if (mensaje == 1)
         {
             chemexMessage();
@@ -230,7 +111,7 @@ void loop()
         {
             coffeeMessage();
         }
-        if (gramaje >= chemex)
+        if (chemex - scaleChemex_grams <= ERROR)
         {
             Serial.println("Chemex reached the desired weight");
             digitalWrite(weigth_DIN_PIN, HIGH);
@@ -246,14 +127,17 @@ void loop()
     break;
     case 3:
     {
-        digitalWrite(dispensador_en, HIGH);
+        // digitalWrite(dispenser_enabled, HIGH);
         digitalWrite(weigth_DIN_PIN, LOW);
         Serial.print("State 3: Weighing Coffee\nPeso: ");
-        gramaje = scaleChemex.get_units(); // ahora la balanza del cafe sera la que mida
-        Serial.print(gramaje, 1);
+        scaleCoffee_grams = scaleCoffee.get_units(10); // ahora la balanza del cafe sera la que mida
+        Serial.print(scaleCoffee_grams, 1);
         Serial.println(" gr");
-        delay(200);
-        coffeeMessage();
+        if (currentMillis - previousMillis >= interval)
+        {
+            previousMillis = currentMillis;
+            coffeeMessage();
+        }
         if (mensaje == 1)
         {
             chemexMessage();
@@ -262,33 +146,38 @@ void loop()
         {
             coffeeMessage();
         }
-        grUmbral = caffe_total - 10;
-        if (gramaje < grUmbral && !flagServo)
+        if (scaleCoffee_grams < grindThresholdStart /*&& !flagServo*/)
         {
-            servoMecha.write(angMax); // In this case only the servo will be activated once
+            mechanicalServo.write(maxAngle); // In this case only the servo will be activated once
+            analogWrite(dispenser_enabled, 128);
             flagServo = true;
         }
-        else if (gramaje >= grUmbral)
+        // also cafe_molido - scaleCoffee_grams <= grStartClosing
+        else if (grindThresholdStart <= scaleCoffee_grams && scaleCoffee_grams <= grindThresholdEnd)
         {
-            ang = angMax - 7.5 * (gramaje - grUmbral);
-            servoMecha.write(ang);
-            flagServo = false; // Resetear la bandera
+            // The servo will be activated to close the dispenser starts at 10 grams (grStartClosing) before the desired weight.
+            // The angle will be closing as the coffee is being dispensed to 2 grams (grEndClosing) before the desired weight, and the final angle is defined by angleClosing now set to 25 degrees
+            servoAngle = maxAngle - slope * (scaleCoffee_grams - (grindThresholdStart));
+            mechanicalServo.write(servoAngle);
+            analogWrite(dispenser_enabled, velDispensador * 1.3);
         }
-        if (gramaje >= caffe_total)
+        else if (cafe_molido - scaleCoffee_grams <= grEndClosing && cafe_molido - scaleCoffee_grams > ERROR)
         {
-            servoMecha.write(0);
+            // enable the dispenser PWM signal will be sent to the dispenser to reach the desired weight
+            analogWrite(dispenser_enabled, velDispensador * 1.75);
         }
-        if (gramaje >= caffe_total)
+
+        if (cafe_molido - scaleCoffee_grams <= ERROR)
         {
+            mechanicalServo.write(0);
+            analogWrite(dispenser_enabled, 0);
             Serial.println("Coffee reached the desired weight");
             digitalWrite(weigth_DIN_PIN, HIGH);
             Serial.println("\nWaiting for the signal tare to jump to the next state.");
+            int tare_digital = digitalRead(tare_DOUT_PIN);
+            if (tare_digital == 1)
             {
-                int tare_digital = digitalRead(tare_DOUT_PIN);
-                if (tare_digital == 1)
-                {
-                    tare_function();
-                }
+                // tare_function();
             }
         }
     }
@@ -297,8 +186,8 @@ void loop()
     {
         digitalWrite(weigth_DIN_PIN, LOW);
         Serial.print("State 4: Weighing Water 1\nPeso: ");
-        gramaje = scaleChemex.get_units();
-        Serial.print(gramaje, 1);
+        scaleChemex_grams = scaleChemex.get_units(7);
+        Serial.print(scaleChemex_grams, 1);
         Serial.println(" gr");
         delay(200);
         chemexMessage();
@@ -310,7 +199,7 @@ void loop()
         {
             coffeeMessage();
         }
-        if (gramaje >= agua_1)
+        if (agua_1 - scaleChemex_grams <= ERROR)
         {
             Serial.println("Water 1 reached the desired weight");
             digitalWrite(weigth_DIN_PIN, HIGH);
@@ -329,8 +218,8 @@ void loop()
     {
         digitalWrite(weigth_DIN_PIN, LOW);
         Serial.print("State 5: Weighing Water 2\nPeso: ");
-        gramaje = scaleChemex.get_units();
-        Serial.print(gramaje, 1);
+        scaleChemex_grams = scaleChemex.get_units();
+        Serial.print(scaleChemex_grams, 1);
         Serial.println(" gr");
         delay(200);
         chemexMessage();
@@ -342,7 +231,7 @@ void loop()
         {
             coffeeMessage();
         }
-        if (gramaje >= agua_2)
+        if (agua_2 - scaleChemex_grams <= ERROR)
         {
             Serial.println("Water 2 reached the desired weight");
             digitalWrite(weigth_DIN_PIN, HIGH);
