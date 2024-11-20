@@ -95,7 +95,7 @@ def pesar_cafe_vertido(arm, debug):
 def saturar_cafe(arm, debug):
     # mover hacia tetera, acercar y sujetar
     arm.set_servo_angle(angle=[-52.8, -29.1, -8.0, -58.8, 111.4, 59.0], speed=ARM_SPEED_J, mvacc=ARM_ACCEL, wait=False, radius=60) # transición
-    arm.set_position(*(modificar_pos(pos_tetera, y=70)), is_radian=False, speed=ARM_SPEED_P, mvacc=ARM_ACCEL, wait=False, radius=60)
+    arm.set_position(*modificar_pos(pos_tetera, y=70), is_radian=False, speed=ARM_SPEED_P, mvacc=ARM_ACCEL, wait=False, radius=60)
     msg = controlar_gripper(arm, ABRIR, wait=0.5)
     print_debug(f'saturar_cafe() - {msg}', debug)
     arm.set_position(*pos_tetera, is_radian=False, wait=True, speed=ARM_SPEED_P, mvacc=ARM_ACCEL, radius=0.0)
@@ -110,41 +110,32 @@ def saturar_cafe(arm, debug):
     
     # verter agua sobre café en movimientos circulares - interrupción por señal
     print_debug(f'saturar_cafe() - Inclinando tetera...', debug)
-    inclin_inicial = modificar_pos(pos_chemex_armtetera, x=12, y=0, z=-40, roll=-35)
-    arm.set_position(*inclin_inicial, is_radian=False, wait=True, speed=ARM_SPEED_P, mvacc=ARM_ACCEL, radius=0.0)
-    
+    arm.set_position(*(inclin_inicial := modificar_pos(pos_chemex_armtetera, x=12, y=0, z=-40, roll=-35)), is_radian=False, wait=True, speed=ARM_SPEED_P, mvacc=ARM_ACCEL, radius=0.0)
     mover_en_circulos(arm=arm, chemex_coords=inclin_inicial, chemex_radius=25, interrupt_time=25, debug=debug)
-    
-    # enderezar y elevar tetera
-    arm.set_position(*modificar_pos(pos_chemex_armtetera, z=15), is_radian=False, wait=True, speed=ARM_SPEED_P, mvacc=ARM_ACCEL*2, radius=80)
+    arm.set_position(*modificar_pos(pos_chemex_armtetera, z=15), is_radian=False, wait=True, speed=ARM_SPEED_P, mvacc=ARM_ACCEL*2, radius=80) # enderezar y elevar
 
     print_debug(f'saturar_cafe() - Café saturado', debug)
 
 def filtrar_cafe(arm, debug):
-    # verter agua sobre café en movimientos circulares - interrupción por tiempo
+    # verter agua sobre café en movimientos circulares
     print_debug(f'filtrar_cafe() - Inclinando tetera...', debug)
-    inclin_inicial = modificar_pos(pos_chemex_armtetera, x=12, y=0, z=-40, roll=-50) # MODIFICAR PARA AGUA RESTANTE
-    arm.set_position(*inclin_inicial, is_radian=False, wait=True, speed=ARM_SPEED*2, mvacc=ARM_ACCEL*2, radius=0.0)
+    arm.set_position(*(inclin_inicial := modificar_pos(pos_chemex_armtetera, x=12, y=0, z=-40, roll=-50)), is_radian=False, wait=True, speed=ARM_SPEED_P, mvacc=ARM_ACCEL)
     mover_en_circulos(arm=arm, chemex_coords=inclin_inicial, chemex_radius=25, interrupt_time=25, debug=debug)
-    
-    # enderezar y elevar tetera
-    arm.set_position(*modificar_pos(pos_chemex_armtetera, z=15), is_radian=False, wait=False, speed=ARM_SPEED*4, mvacc=ARM_ACCEL*3, radius=80)
-    
+    arm.set_position(*modificar_pos(pos_chemex_armtetera, z=15), is_radian=False, wait=False, speed=ARM_SPEED_P, mvacc=ARM_ACCEL*2, radius=80) # enderezar y elevar
+
     # regresar tetera a posición inicial
-    arm.set_position(*modificar_pos(pos_chemex_armtetera, z=15), is_radian=False, wait=False, speed=ARM_SPEED*4, mvacc=ARM_ACCEL*3, radius=80)
     msg = cambiar_offset('default')
     print_debug(f'filtrar_cafe() - {msg}', debug)
-    arm.set_position(*modificar_pos(pos_tetera, z=200), is_radian=False, wait=False, speed=ARM_SPEED*3, mvacc=ARM_ACCEL*2, radius=60)
-    arm.set_position(*pos_tetera, is_radian=False, wait=True, speed=ARM_SPEED*3, mvacc=ARM_ACCEL*2, radius=0.0)
+    arm.set_position(*modificar_pos(pos_tetera, z=200), is_radian=False, wait=False, speed=ARM_SPEED_P, mvacc=ARM_ACCEL, radius=60)
+    arm.set_position(*pos_tetera, is_radian=False, wait=True, speed=ARM_SPEED_P, mvacc=ARM_ACCEL*2, radius=0.0)
     time.sleep(2)
     msg = controlar_gripper(arm, ABRIR)
     print_debug(f'filtrar_cafe() - {msg}', debug)
-    print("Alejándose de tetera...")
-    arm.set_position(*modificar_pos(pos_tetera, y=70), is_radian=False, wait=True, speed=ARM_SPEED*3, mvacc=ARM_ACCEL*2, radius=30)
+    arm.set_position(*modificar_pos(pos_tetera, y=70), is_radian=False, wait=True, speed=ARM_SPEED_P, mvacc=ARM_ACCEL, radius=30) # alejar 
     msg = controlar_gripper(arm, CERRAR)
     print_debug(f'filtrar_cafe() - {msg}', debug)
 
-    print_debug(f'filtrar_cafe() - Café saturado', debug)
+    print_debug(f'filtrar_cafe() - Café filtrado', debug)
 
 def retirar_filtro(arm, debug):
     # sujetar filtro
