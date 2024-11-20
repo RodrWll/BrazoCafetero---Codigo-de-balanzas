@@ -30,7 +30,7 @@ void setup()
     scaleChemex.set_runavg_mode();
     // señales
     pinMode(weigth_DIN_PIN, OUTPUT);
-    pinMode(dispenser_enabled, OUTPUT);
+    pinMode(9, OUTPUT);
     pinMode(tare_DOUT_PIN, INPUT_PULLUP);
     pinMode(enable_DOUT_PIN, INPUT_PULLUP);
     pinMode(resetButtonPin, INPUT_PULLUP); // Configura el botón como entrada
@@ -50,6 +50,7 @@ int velDispensador = 125;
 
 void loop()
 {
+
     unsigned long currentMillis = millis();
 
     resetButtonAction();
@@ -148,7 +149,7 @@ void loop()
         if (scaleCoffee_grams < grindThresholdStart /*&& !flagServo*/)
         {
             mechanicalServo.write(maxAngle); // In this case only the servo will be activated once
-            analogWrite(dispenser_enabled, velDispensador * 1.25);
+            analogWrite(dispenser_enabled, 128);
             flagServo = true;
         }
         // also cafe_molido - scaleCoffee_grams <= grStartClosing
@@ -158,7 +159,7 @@ void loop()
             // The angle will be closing as the coffee is being dispensed to 2 grams (grEndClosing) before the desired weight, and the final angle is defined by angleClosing now set to 25 degrees
             servoAngle = maxAngle - slope * (scaleCoffee_grams - (grindThresholdStart));
             mechanicalServo.write(servoAngle);
-            analogWrite(dispenser_enabled, velDispensador*1.3);
+            analogWrite(dispenser_enabled, velDispensador * 1.3);
         }
         else if (cafe_molido - scaleCoffee_grams <= grEndClosing && cafe_molido - scaleCoffee_grams > ERROR)
         {
