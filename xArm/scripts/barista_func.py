@@ -75,9 +75,9 @@ def cambiar_offset(arm, option):
 def modificar_pos(pos, x=0, y=0, z=0, roll=0, pitch=0, yaw=0):
     return [pos[0] + x, pos[1] + y, pos[2] + z, pos[3] + roll, pos[4] + pitch, pos[5] + yaw]
 
-def mover_en_circulos(arm, chemex_coords, chemex_radius, interrupt_time, debug):
-    start_pos = modificar_pos(chemex_coords, x=-chemex_radius)
-    arm.set_position(*start_pos, is_radian=False, wait=False, speed=ARM_SPEED, mvacc=ARM_ACCEL, radius=0.0)
+def mover_en_circulos(arm, chemex_coords, radius, interrupt_time, debug):
+    start_pos = modificar_pos(chemex_coords, x=-radius)
+    arm.set_position(*start_pos, is_radian=False, wait=False, speed=ARM_SPEED_P, mvacc=ARM_ACCEL, radius=0.0)
     [initial_x, initial_y, initial_z, initial_roll, initial_pitch, initial_yaw] = start_pos
     print_debug(f"mover_en_circulos() - Initial pos: {start_pos}", debug)
     roll_inc = 0
@@ -93,15 +93,15 @@ def mover_en_circulos(arm, chemex_coords, chemex_radius, interrupt_time, debug):
             print_debug(f"mover_en_circulos() - Interrupción por {interrupt_mode}: {msg}", debug)
             break
         # nuevas coordenadas
-        y_offset = chemex_radius if toggle_pos else -chemex_radius
-        pos1 = [initial_x+chemex_radius, initial_y-y_offset, initial_z, initial_roll-roll_inc, initial_pitch, initial_yaw]
-        pos2 = [initial_x+chemex_radius, initial_y+y_offset, initial_z, initial_roll-roll_inc, initial_pitch, initial_yaw]
+        y_offset = radius if toggle_pos else -radius
+        pos1 = [initial_x+radius, initial_y-y_offset, initial_z, initial_roll-roll_inc, initial_pitch, initial_yaw]
+        pos2 = [initial_x+radius, initial_y+y_offset, initial_z, initial_roll-roll_inc, initial_pitch, initial_yaw]
         toggle_pos = not toggle_pos
         roll_inc += 3.5 if elapsed_time < 6 else 2.5
         # mover a las nuevas coordenadas
         c, pos0 = arm.get_position(is_radian=False)
         print_debug(f"mover_en_circulos() - Pos1: {pos1[:3]}, Central: {pos0[:3]}, Pos2: {pos2[:3]}")
-        arm.move_circle(pos1, pos2, 50, speed=ARM_SPEED, mvacc=ARM_ACCEL, wait=True, is_radian=False)
+        arm.move_circle(pos1, pos2, 50, speed=ARM_SPEED_P, mvacc=ARM_ACCEL, wait=True, is_radian=False)
 
 ## GPIO
 def leer_gpio(arm, pin=None, output=False):
