@@ -7,12 +7,13 @@ from xarm.wrapper import XArmAPI
 from scripts.barista_func import *
 
 # POSICIONES
-pos_taza = [100.0, 300.0, 200.0, 0.0, 0.0, 0.0] # POR PROBAR
-pos_dispensador = [375.0, 0.0, 80.0, 180.0, 0.0, 0.0] # ACTUALIZAR, SE MOVIÓ BRAZO
-pos_chemex = [200.0, 300.0, 150.0, 180.0, 0.0, 90.0] # POR PROBAR
-pos_chemex_dispensador = [*pos_chemex[:2], 350, 180.0, 0.0, 45.0] # POR PROBAR
+pos_dispensador = [410.0, 0.0, 80.0, 180.0, 0.0, 0.0]
+pos_chemex = [315.0, 340.0, 180.0, 180.0, 0.0, 90.0]
+pos_chemex_dispensador = [*pos_chemex[:2], 320, 180.0, 0.0, 90.0]
+pos_taza1 = [100.0, 200.0, 200.0, 0.0, 0.0, 0.0] # POR TESTEAR
+pos_taza2 = [100.0, 200.0, 200.0, 0.0, 0.0, 0.0] # POR TESTEAR
 
-pos_filtro = []
+# pos_filtro = []
 pos_tetera = [120.0, -220.0, 129.5, 90.0, 0.0, -90.0] # offset: 'tetera'
 pos_chemex_tetera = [505.0, -180.0, 325.0, 90.0, 0, -45.0] # offset: 'default'
 
@@ -65,20 +66,25 @@ def verter_cafe_sobre_filtro(arm, debug):
     # mover hacia dispensador y sujetar recipiente con café
     msg = controlar_gripper(arm, ABRIR)
     print_debug(f'verter_cafe_sobre_filtro() - {msg}', debug)
-    arm.set_position(*(dispensador_elevar := modificar_pos(pos_dispensador, z=32)), is_radian=False, speed=ARM_SPEED_P, mvacc=ARM_ACCEL, wait=False)
+    arm.set_position(*(dispensador_elevar := modificar_pos(pos_dispensador, z=40)), is_radian=False, speed=ARM_SPEED_P, mvacc=ARM_ACCEL, wait=False, radius=10)
     arm.set_position(*pos_dispensador, is_radian=False, speed=ARM_SPEED_P, mvacc=ARM_ACCEL, wait=True)
     msg = controlar_gripper(arm, CERRAR, wait=1)
     print_debug(f'verter_cafe_sobre_filtro() - {msg}', debug)
-    arm.set_position(*(dispensador_alejar := modificar_pos(pos_dispensador, x=-150, z=32)), is_radian=False, speed=ARM_SPEED_P, mvacc=ARM_ACCEL, wait=False)
+    arm.set_position(*(dispensador_alejar := modificar_pos(pos_dispensador, x=-200, z=20)), is_radian=False, speed=ARM_SPEED_P, mvacc=ARM_ACCEL, wait=False, radius=60)
     # mover hacia Chemex e inclinar recipiente
-    arm.set_position(*(temp := modificar_pos(dispensador_alejar, x=-15, y=100, z=100, yaw=45)), is_radian=False, speed=ARM_SPEED_P, mvacc=ARM_ACCEL, wait=False)
-    arm.set_position(*(dispensador_chemex := modificar_pos(temp, y=200, z=130, yaw=10)), is_radian=False, speed=ARM_SPEED_P, mvacc=ARM_ACCEL, wait=False)
-    arm.set_servo_angle(angle=[73.3, -11.1, -32.1, -101.1, 98.9, 25.6], speed=ARM_SPEED_J, mvacc=ARM_ACCEL, wait=False)
+    arm.set_position(*(dispensador_transicion := modificar_pos(dispensador_alejar, y=100, z=150, yaw=45)), is_radian=False, speed=ARM_SPEED_P, mvacc=ARM_ACCEL, wait=False, radius=30)
+    arm.set_position(*pos_chemex_dispensador, is_radian=False, speed=ARM_SPEED_P, mvacc=ARM_ACCEL, wait=False)
+    arm.set_position(*(dispensador_inclinar := modificar_pos(pos_chemex_dispensador, z=-20, roll=-130)), is_radian=False, speed=ARM_SPEED_P, mvacc=ARM_ACCEL, wait=False)
     print_debug("verter_cafe_sobre_filtro() - Virtiendo café", debug)
+    # sacudir recipiente para vaciar café
+    for i in range(2):
+        arm.set_position(*modificar_pos(dispensador_inclinar, z=20), is_radian=False, speed=ARM_SPEED_P*3, mvacc=ARM_ACCEL*2, wait=False, radius=20)
+        arm.set_position(*dispensador_inclinar, is_radian=False, speed=ARM_SPEED_P*4, mvacc=int(ARM_ACCEL*2.5), wait=True)
     # regresar recipiente a dispensador
-    arm.set_position(*dispensador_chemex, is_radian=False, speed=ARM_SPEED_P, mvacc=ARM_ACCEL, wait=False)
-    arm.set_position(*dispensador_alejar, is_radian=False, speed=ARM_SPEED_P, mvacc=ARM_ACCEL, wait=False)
-    arm.set_position(*dispensador_elevar, is_radian=False, speed=ARM_SPEED_P, mvacc=ARM_ACCEL, wait=False)
+    arm.set_position(*pos_chemex_dispensador, is_radian=False, speed=ARM_SPEED_P, mvacc=ARM_ACCEL, wait=False)
+    arm.set_position(*dispensador_transicion, is_radian=False, speed=ARM_SPEED_P, mvacc=ARM_ACCEL, wait=False, radius=30)
+    arm.set_position(*dispensador_alejar, is_radian=False, speed=ARM_SPEED_P, mvacc=ARM_ACCEL, wait=False, radius=60)
+    arm.set_position(*dispensador_elevar, is_radian=False, speed=ARM_SPEED_P, mvacc=ARM_ACCEL, wait=False, radius=10)
     arm.set_position(*pos_dispensador, is_radian=False, speed=ARM_SPEED_P, mvacc=ARM_ACCEL, wait=True)
     msg = controlar_gripper(arm, ABRIR, wait=1)
     print_debug(f'verter_cafe_sobre_filtro() - {msg}', debug)
