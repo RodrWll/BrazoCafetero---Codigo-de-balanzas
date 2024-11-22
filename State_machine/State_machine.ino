@@ -89,13 +89,14 @@ void loop()
         int digital_enable = digitalRead(enable_DOUT_PIN);
         if (digital_enable == 1)
         { // ESPERARA AL BRAZO PARA EMPEZAR A MEDIR JUNTO AL DISPENSADOR
+            digitalWrite(weigth_DIN_PIN, LOW);
             tare_function();
         }
     }
     break;
     case 2:
     {
-        digitalWrite(weigth_DIN_PIN, LOW);
+      
         Serial.print("State 2: Weighing Chemex\nPeso: ");
         scaleChemex_grams = scaleChemex.get_units(10); // la balanza del chemex solo medira
         Serial.print(scaleChemex_grams, 1);
@@ -120,6 +121,7 @@ void loop()
 
             if (tare_digital == 1)
             {
+                digitalWrite(weigth_DIN_PIN, LOW);
                 tare_function();
             }
         }
@@ -128,7 +130,7 @@ void loop()
     case 3:
     {
         // digitalWrite(dispenser_enabled, HIGH);
-        digitalWrite(weigth_DIN_PIN, LOW);
+ 
         Serial.print("State 3: Weighing Coffee\nPeso: ");
         scaleCoffee_grams = scaleCoffee.get_units(10); // ahora la balanza del cafe sera la que mida
         Serial.print(scaleCoffee_grams, 1);
@@ -177,6 +179,7 @@ void loop()
             int tare_digital = digitalRead(tare_DOUT_PIN);
             if (tare_digital == 1)
             {
+                digitalWrite(weigth_DIN_PIN, LOW);
                 // tare_function();
             }
         }
@@ -208,6 +211,7 @@ void loop()
                 int tare_digital = digitalRead(tare_DOUT_PIN);
                 if (tare_digital == 1)
                 {
+                    digitalWrite(weigth_DIN_PIN, LOW);
                     tare_function();
                 }
             }
@@ -240,6 +244,7 @@ void loop()
                 int tare_digital = digitalRead(tare_DOUT_PIN);
                 if (tare_digital == 1)
                 {
+                    digitalWrite(weigth_DIN_PIN, LOW);
                     if (digitalRead(enable_DOUT_PIN) == 0)
                     {
                         lcd.print("END");
