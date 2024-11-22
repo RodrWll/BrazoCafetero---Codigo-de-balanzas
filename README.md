@@ -79,5 +79,11 @@ Wiring for the Arduino Nano is as follows:
 | D5  | pinServo1             | Servo control pin            |                      |
 | D10 | AIN1                  | Motor direction control 1    |                      |
 | D11 | AIN2                  | Motor direction control 2    |                      |
+
+## PCB Schematic - Cafetero
+
+![image](https://github.com/user-attachments/assets/9214e00e-cf4c-42d6-ad64-f00602fbfc66)
+
+**
 | A2  | potentiometer         | Potentiometer input          |                      |
 | GND | Ground                | Common ground                |             GND      |
