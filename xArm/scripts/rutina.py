@@ -61,7 +61,16 @@ def colocar_filtro_sobre_chemex(arm, debug):
 
 def dispensar_cafe(arm, debug):
     # enviar señal a Arduino para dispensar café
-    # State = 2
+    arm.set_cgpio_digital(DO5_TARE, HIGH) # en State = 2
+    # esperar a que Arduino envíe señal de dispensado
+    timeout = time.time() + 10
+    while time.time() <= timeout:
+        if leer_gpio(arm, pin=DI1_WEIGHT) == HIGH:
+            break
+        time.sleep(0.5)
+    else:
+        print_debug("dispensar_cafe() - Se alcanzó el tiempo de espera", debug)
+    
     if debug: print("dispensar_cafe() - Café dispensado")
 
 def tarar_balanza(arm, debug):
