@@ -10,7 +10,7 @@ from scripts.barista_func import *
 import select
 import keyboard
 
-ip = "192.168.1.203"
+ip = "192.168.1.203" # xArm tetera
 arm = XArmAPI(ip)
 ARM_SPEED = 20
 
@@ -83,8 +83,6 @@ def get_gpio_value(arm, output=True, pin=None):
 #     dout = get_gpio_value(arm, output=True)
 #     if user_input == 's':
 #         print(f"DI: {din} | DO: {dout}")
-#     elif user_input == 'q':
-#         break
 #     elif user_input in ['0', '1']:
 #         state = 0 if int(user_input) == 0 else 1
 #         arm.set_cgpio_digital(DO4_ENABLE, state)
@@ -96,9 +94,9 @@ def get_gpio_value(arm, output=True, pin=None):
 #     elif user_input not in ['0', '1', '10', '11']:
 #         print("ENABLE_LOW=0 | ENABLE_HIGH=1 | TARE_LOW=10 | TARE_HIGH=11")
 #         continue
+#     elif user_input == 'q':
+#         break
 
 
 arm.disconnect()
 print('Disconnected')
-
-
