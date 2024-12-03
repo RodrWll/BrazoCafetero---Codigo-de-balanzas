@@ -50,7 +50,7 @@ def colocar_filtro_sobre_chemex(arm, debug):
     # levantar filtro y colocar sobre Chemex
     arm.set_position(*modificar_pos(pos_filtro, z=100), is_radian=False, speed=ARM_SPEED_P, mvacc=ARM_ACCEL, wait=False, radius=0.0) # levantar filtro
     arm.set_position(*(filtro_sobre_chemex := modificar_pos(pos_chemex, z=200)), is_radian=False, speed=ARM_SPEED_P, mvacc=ARM_ACCEL, wait=False, radius=0.0) # acercar brazo a Chemex
-    arm.set_position(*modificar_pos(pos_chemex, z=100), is_radian=False, speed=ARM_SPEED_P, mvacc=ARM_ACCEL, wait=True, radius=0.0) # colocar filtro sobre Chemex (por definir 'z')
+    arm.set_position(*modificar_pos(pos_chemex, z=100), is_radian=False, speed=ARM_SPEED_P, mvacc=ARM_ACCEL, wait=True, radius=0.0) # colocar filtro sobre Chemex (por definir coords)
     msg = controlar_gripper(arm, ABRIR)
     print_debug(f'colocar_filtro_sobre_chemex() - {msg}', debug)
     # mover brazo a posición neutral
@@ -166,9 +166,30 @@ def filtrar_cafe(arm, debug):
 
 def retirar_filtro(arm, debug):
     # sujetar filtro
+    msg = controlar_gripper(arm, ABRIR)
+    print_debug(f'retirar_filtro() - {msg}', debug)
+    # <agregar transición>
+    arm.set_position(*modificar_pos(pos_chemex, y=-20, z=200), speed=ARM_SPEED_P, mvacc=ARM_ACCEL, wait=False, radius=30.0) # posicionar brazo sobre filtro con offset
+    arm.set_position(*modificar_pos(pos_chemex, y=-20), speed=ARM_SPEED_P, mvacc=ARM_ACCEL, wait=False, radius=10.0) # bajar brazo con offset
+    arm.set_position(*modificar_pos(pos_chemex, z=100), speed=ARM_SPEED_P, mvacc=ARM_ACCEL, wait=True, radius=0.0) # acercar brazo a filtro
+    time.sleep(1)
+    msg = controlar_gripper(arm, CERRAR, wait=1)
+    print_debug(f'retirar_filtro() - {msg}', debug)
     # retirar filtro de Chemex
+    arm.set_position(*modificar_pos(pos_chemex, z=100), speed=ARM_SPEED_P, mvacc=ARM_ACCEL, wait=False, radius=0.0) # levantar filtro
+    arm.set_position(*(modificar_pos(pos_chemex, y=-20)), speed=ARM_SPEED_P, mvacc=ARM_ACCEL, wait=False, radius=0.0) # alejar brazo de Chemex
     # regresar filtro a posición inicial
+    # <agregar transición>
+    arm.set_position(*pos_filtro, speed=ARM_SPEED_P, mvacc=ARM_ACCEL, wait=False, radius=0.0) # acercar brazo a filtro
+    msg = controlar_gripper(arm, ABRIR, wait=1)
+    print_debug(f'retirar_filtro() - {msg}', debug)
     # regresar brazo a posición neutral
+    arm.set_position(*modificar_pos(pos_filtro, y=-20), speed=ARM_SPEED_P, mvacc=ARM_ACCEL, wait=False, radius=0.0) # alejar de filtro
+    msg = controlar_gripper(arm, CERRAR, wait=1)
+    print_debug(f'retirar_filtro() - {msg}', debug)
+    # <agregar transición>
+    arm.go_home()
+
     print_debug("retirar_filtro() - Filtro retirado", debug)
 
 def servir_cafe(arm, debug):
