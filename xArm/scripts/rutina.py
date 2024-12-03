@@ -13,9 +13,9 @@ pos_chemex_dispensador = [*pos_chemex[:2], 320, 180.0, 0.0, 90.0]
 pos_taza1 = [100.0, 200.0, 200.0, 0.0, 0.0, 0.0] # POR TESTEAR
 pos_taza2 = [100.0, 200.0, 200.0, 0.0, 0.0, 0.0] # POR TESTEAR
 
-# pos_filtro = []
-pos_tetera = [120.0, -220.0, 129.5, 90.0, 0.0, -90.0] # offset: 'tetera'
+pos_filtro = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0] # POR DEFINIR - offset: 'default'
 pos_chemex_tetera = [505.0, -180.0, 325.0, 90.0, 0, -45.0] # offset: 'default'
+pos_tetera = [120.0, -220.0, 129.5, 90.0, 0.0, -90.0] # offset: 'tetera'
 
 def iniciar_robot(ip, arm_name, debug, test=False):
     arm = XArmAPI(ip)
@@ -37,25 +37,36 @@ def iniciar_arduino(arm, debug):
     arm.set_cgpio_digital(DO4_ENABLE, HIGH)
     if debug: print("iniciar_arduino()")
 
+def colocar_filtro_sobre_chemex(arm, debug):
+    # mover hacia filtro y sujetar
+    msg = controlar_gripper(arm, ABRIR)
+    print_debug(f'colocar_filtro_sobre_chemex() - {msg}', debug)
+    arm.set_position(*(transicion := modificar_pos(pos_filtro, y=-20, z=100)), is_radian=False, speed=ARM_SPEED_P, mvacc=ARM_ACCEL, wait=False, radius=0.0) # posicionar brazo sobre filtro con offset
+    arm.set_position(*modificar_pos(pos_filtro, y=-20), is_radian=False, speed=ARM_SPEED_P, mvacc=ARM_ACCEL, wait=False, radius=0.0) # bajar brazo con offset
+    arm.set_position(*modificar_pos(pos_filtro), is_radian=False, speed=ARM_SPEED_P, mvacc=ARM_ACCEL, wait=True, radius=0.0) # acercar brazo a filtro
+    time.sleep(1)
+    msg = controlar_gripper(arm, CERRAR, wait=1)
+    print_debug(f'colocar_filtro_sobre_chemex() - {msg}', debug)
+    # levantar filtro y colocar sobre Chemex
+    arm.set_position(*modificar_pos(pos_filtro, z=100), is_radian=False, speed=ARM_SPEED_P, mvacc=ARM_ACCEL, wait=False, radius=0.0) # levantar filtro
+    arm.set_position(*(filtro_sobre_chemex := modificar_pos(pos_chemex, z=200)), is_radian=False, speed=ARM_SPEED_P, mvacc=ARM_ACCEL, wait=False, radius=0.0) # acercar brazo a Chemex
+    arm.set_position(*modificar_pos(pos_chemex, z=100), is_radian=False, speed=ARM_SPEED_P, mvacc=ARM_ACCEL, wait=True, radius=0.0) # colocar filtro sobre Chemex (por definir 'z')
+    msg = controlar_gripper(arm, ABRIR)
+    print_debug(f'colocar_filtro_sobre_chemex() - {msg}', debug)
+    # mover brazo a posición neutral
+    arm.set_position(*filtro_sobre_chemex, is_radian=False, speed=ARM_SPEED_P, mvacc=ARM_ACCEL, wait=False, radius=0.0) # alejar brazo de filtro
+    arm.set_position(*transicion, is_radian=False, speed=ARM_SPEED_P, mvacc=ARM_ACCEL, wait=False, radius=0.0) # elevar brazo
+
+    if debug: print("colocar_filtro_sobre_chemex() - Filtro sobre Chemex")
+
 def dispensar_cafe(arm, debug):
     # enviar señal a Arduino para dispensar café
-    if debug: print("dispensar_cafe()")
-
-def colocar_chemex_sobre_balanza(arm, debug):
-    # mover hacia Chemex y sujetar
-    # levantar Chemex y colocar sobre balanza
-    # mover brazo a posición neutral
-    if debug: print("colocar_chemex_sobre_balanza() - Chemex sobre balanza")
+    # State = 2
+    if debug: print("dispensar_cafe() - Café dispensado")
 
 def tarar_balanza(arm, debug):
     arm.set_cgpio_digital(DO5_TARE, HIGH)
     if debug: print("tarar_balanza()")
-
-def colocar_filtro_sobre_chemex(arm, debug):
-    # mover hacia filtro y sujetar
-    # levar filtro y colocar sobre Chemex
-    # mover brazo a posición neutral
-    if debug: print("colocar_filtro_sobre_chemex - Filtro sobre Chemex")
 
 def tarar_chemex(arm, debug):
     arm.set_cgpio_digital(DO5_TARE, HIGH)
@@ -166,7 +177,7 @@ def servir_cafe(arm, debug):
     arm.move_circle(modificar_pos(chemex_elevar, y=-radius, roll=-10), modificar_pos(chemex_elevar, y=radius, roll=10),
                     100*3, speed=ARM_SPEED_P, mvacc=ARM_ACCEL, wait=True, is_radian=False)
     # servir café en taza
-    arm.set_position(*(taza_elevar := modificar_pos(pos_taza, z=100)), speed=ARM_SPEED_P, mvacc=ARM_ACCEL, wait=False, radius=0.0)
+    arm.set_position(*(taza_elevar := modificar_pos(pos_taza1, z=100)), speed=ARM_SPEED_P, mvacc=ARM_ACCEL, wait=False, radius=0.0)
     arm.set_position(*(modificar_pos(taza_elevar, roll=-30)), speed=ARM_SPEED_P, mvacc=ARM_ACCEL, wait=False, radius=0.0)
     print_debug("servir_cafe() - Sirviendo café...", debug)
     time.sleep(5) # tiempo de servido
