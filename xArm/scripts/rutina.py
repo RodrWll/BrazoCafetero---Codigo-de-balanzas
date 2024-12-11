@@ -8,10 +8,10 @@ from scripts.barista_func import *
 
 # POSICIONES
 pos_dispensador = [410.0, 0.0, 80.0, 180.0, 0.0, 0.0]
-pos_chemex = [315.0, 340.0, 180.0, 180.0, 0.0, 90.0]
+pos_chemex = [315.0, 340.0, 170.0, 180.0, 0.0, 90.0]
 pos_chemex_dispensador = [*pos_chemex[:2], 320, 180.0, 0.0, 90.0]
-pos_taza1 = [100.0, 200.0, 200.0, 0.0, 0.0, 0.0] # POR TESTEAR
-pos_taza2 = [100.0, 200.0, 200.0, 0.0, 0.0, 0.0] # POR TESTEAR
+pos_taza1 = [180.0, 200.0, 320.0, 180.0, 0.0, 120.0]
+pos_taza2 = modificar_pos(pos_taza1, y=150)
 
 pos_filtro = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0] # POR DEFINIR - offset: 'default'
 pos_chemex_tetera = [505.0, -180.0, 325.0, 90.0, 0, -45.0] # offset: 'default'
@@ -196,26 +196,39 @@ def servir_cafe(arm, debug):
     # agarrar Chemex
     msg = controlar_gripper(arm, ABRIR, wait=1)
     print_debug(f'servir_cafe() - {msg}', debug)
-    arm.set_position(*modificar_pos(pos_chemex, x=-100), speed=ARM_SPEED_P, mvacc=ARM_ACCEL, wait=False, radius=0.0)
+    arm.set_position(*(chemex_alejar := modificar_pos(pos_chemex, y=-100)), speed=ARM_SPEED_P, mvacc=ARM_ACCEL, wait=False, radius=0.0)
     arm.set_position(*pos_chemex, speed=ARM_SPEED_P, mvacc=ARM_ACCEL, wait=True)
     time.sleep(1)
     msg = controlar_gripper(arm, CERRAR, wait=0.5)
     print_debug(f'servir_cafe() - {msg}', debug)
     # levantar y remover Chemex
-    arm.set_position(*(chemex_elevar := modificar_pos(pos_chemex, z=200)), speed=ARM_SPEED_P, mvacc=ARM_ACCEL, wait=False, radius=0.0)
-    radius = 10
-    arm.move_circle(modificar_pos(chemex_elevar, y=-radius, roll=-10), modificar_pos(chemex_elevar, y=radius, roll=10),
-                    100*3, speed=ARM_SPEED_P, mvacc=ARM_ACCEL, wait=True, is_radian=False)
-    # servir café en taza
-    arm.set_position(*(taza_elevar := modificar_pos(pos_taza1, z=100)), speed=ARM_SPEED_P, mvacc=ARM_ACCEL, wait=False, radius=0.0)
-    arm.set_position(*(modificar_pos(taza_elevar, roll=-30)), speed=ARM_SPEED_P, mvacc=ARM_ACCEL, wait=False, radius=0.0)
-    print_debug("servir_cafe() - Sirviendo café...", debug)
+    arm.set_position(*(chemex_elevar := modificar_pos(pos_chemex, z=100)), speed=ARM_SPEED_P, mvacc=ARM_ACCEL, wait=False, radius=0.0)
+    time.sleep(1)
+    # servir café en taza 1
+    serve_incline = 60
+    arm.set_position(*(taza_elevar := modificar_pos(pos_taza1, z=50)), speed=ARM_SPEED_P, mvacc=ARM_ACCEL, wait=False, radius=20.0)
+    radius = 20
+    arm.move_circle(modificar_pos(chemex_elevar, x=-radius, y=radius), modificar_pos(chemex_elevar, x=radius, y=radius),
+                    100*3, speed=ARM_SPEED_P, mvacc=ARM_ACCEL, is_radian=False)
+    arm.set_position(*(modificar_pos(taza_elevar, z=-30, pitch=serve_incline)), speed=ARM_SPEED_P, mvacc=ARM_ACCEL, wait=True, radius=20.0)
+    print_debug("servir_cafe() - Sirviendo café en taza 1..", debug)
     time.sleep(5) # tiempo de servido
+    arm.set_position(*pos_taza1, speed=ARM_SPEED_P, mvacc=ARM_ACCEL, wait=False, radius=0.0)
     arm.set_position(*taza_elevar, speed=ARM_SPEED_P, mvacc=ARM_ACCEL, wait=False, radius=0.0)
-    arm.set_position(*chemex_elevar, speed=ARM_SPEED_P, mvacc=ARM_ACCEL, wait=False, radius=0.0)
+    # servir café en taza 2
+    arm.set_position(*(taza_elevar := modificar_pos(pos_taza2, z=50)), speed=ARM_SPEED_P, mvacc=ARM_ACCEL, wait=False, radius=0.0)
+    arm.set_position(*(modificar_pos(taza_elevar, z=-30, pitch=serve_incline+5 )), speed=ARM_SPEED_P, mvacc=ARM_ACCEL, wait=True, radius=0.0)
+    print_debug("servir_cafe() - Sirviendo café en taza 2..", debug)
+    time.sleep(5) # tiempo de servido
+    arm.set_position(*pos_taza2, speed=ARM_SPEED_P, mvacc=ARM_ACCEL, wait=False, radius=20.0)
+    arm.set_position(*taza_elevar, speed=ARM_SPEED_P, mvacc=ARM_ACCEL, wait=False, radius=20.0)
     # regresar Chemex a balanza
-    arm.set_position(*pos_chemex, speed=ARM_SPEED_P, mvacc=ARM_ACCEL, wait=False, radius=0.0)
-    arm.set_position(*pos_tetera, wait=True, speed=ARM_SPEED_P, mvacc=ARM_ACCEL, radius=0.0)
+    print_debug("servir_cafe() - Regresando Chemex...", debug)
+    arm.set_position(*chemex_elevar, speed=ARM_SPEED_P, mvacc=ARM_ACCEL, wait=False, radius=0.0)
+    arm.set_position(*pos_chemex, speed=ARM_SPEED_P, mvacc=ARM_ACCEL, wait=True, radius=0.0)
+    time.sleep(1)
+    msg = controlar_gripper(arm, ABRIR, wait=1)
+    print_debug(f'servir_cafe() - {msg}', debug)
 
     print_debug("servir_cafe() - Café servido.", debug)
 
@@ -251,7 +264,7 @@ def preparar_cafe(debug=False):
 def testing(debug=True):
     ip_chemex = '192.168.1.196'
     arm_chemex = iniciar_robot(ip_chemex, 'arm_chemex', debug)
-    verter_cafe_sobre_filtro(arm_chemex, debug)
+    servir_cafe(arm_chemex, debug)
 
 if __name__ == "__main__":
     print(f'ARM_SPEED_P = {ARM_SPEED_P} / ARM_SPEED_J = {ARM_SPEED_J} / ARM_ACCEL = {ARM_ACCEL}')
